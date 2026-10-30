@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Base de Datos Relacional PostgreSQL 16
+  postgres:
+    image: postgres:16-alpine
+    container_name: uv-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: uv_admin
+      POSTGRES_PASSWORD: uv_password_2026
+      POSTGRES_DB: uv_academic_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/academic-core/src/seeds/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uv_admin -d uv_academic_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Caché & Mensajería Redis 7 (ZSET para FIFO y Single-Session Lock)
+  redis:
+    image: redis:7-alpine
+    container_name: uv-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass uv_redis_secret
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "uv_redis_secret", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Unificado (Auth SSO + Queue Engine + Academic Core)
+  backend-api:
+    build:
+      context: ./services/academic-core
+      dockerfile: Dockerfile
+    container_name: uv-backend-api
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgresql://uv_admin:uv_password_2026@postgres:5432/uv_academic_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: uv_redis_secret
+      JWT_SECRET: uv_jwt_secret_token_5125
+      CORS_ORIGIN: "http://localhost:3000,http://127.0.0.1:3000"
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Frontend Unificado Multiplataforma (Portal UV Web Desktop & APPTUI UV Mobile)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: uv-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-api
+
+volumes:
+  postgres_data:
+  redis_data:
