@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="uvGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#004A77" />
+      <stop offset="60%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#31C4D7" />
+    </linearGradient>
+    <linearGradient id="avatarShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle with UV Gradient -->
+  <circle cx="64" cy="64" r="64" fill="url(#uvGradient)" />
+
+  <!-- Subtle Shine Overlay -->
+  <circle cx="64" cy="64" r="64" fill="url(#avatarShine)" />
+
+  <!-- Head -->
+  <circle cx="64" cy="48" r="22" fill="#ffffff" opacity="0.95" />
+
+  <!-- Body / Shoulders -->
+  <path d="M64 76 C42 76 24 94 24 116 C24 120 28 124 32 124 L96 124 C100 124 104 120 104 116 C104 94 86 76 64 76 Z" fill="#ffffff" opacity="0.95" />
+
+  <!-- Subtle Institutional Accent Star / Academic Cap detail -->
+  <path d="M64 16 L76 22 L64 28 L52 22 Z" fill="#F9AB00" opacity="0.9" />
+  <path d="M72 24 L72 32 C72 33 71 34 70 34" stroke="#F9AB00" stroke-width="2" fill="none" />
+</svg>

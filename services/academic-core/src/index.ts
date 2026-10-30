@@ -104,7 +104,7 @@ app.post('/api/auth/login', (peticion, respuesta) => {
     estudiante: {
       rut,
       correo,
-      nombre: 'Bruno Díaz Fernández',
+      nombre: 'Estudiante de Prueba UV',
       carrera: 'Ingeniería Civil Informática',
       codigoCarrera: '19085',
       planCurricular: 'Malla 5125 / Plan Común UV',

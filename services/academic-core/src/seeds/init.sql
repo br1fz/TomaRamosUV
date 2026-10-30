@@ -76,9 +76,9 @@ CREATE TABLE IF NOT EXISTS waitlists (
 -- Estudiante de Prueba
 INSERT INTO students (rut, email, full_name, career_code, career_name, curriculum_plan, semester, priority_group)
 VALUES (
-    '19.926.640-3',
-    'bruno.diazf@estudiantes.uv.cl',
-    'Bruno Díaz Fernández',
+    '20.123.456-7',
+    'estudiante.prueba@estudiantes.uv.cl',
+    'Estudiante de Prueba UV',
     '19085',
     'Ingeniería Civil Informática',
     'Malla 5125 / Plan Común UV',

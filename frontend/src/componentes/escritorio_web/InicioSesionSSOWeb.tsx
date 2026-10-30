@@ -104,7 +104,7 @@ export const InicioSesionSSOWeb: React.FC = () => {
                   type="text"
                   value={rut}
                   onChange={(e) => establecerRut(e.target.value)}
-                  placeholder="19.926.640-3"
+                  placeholder="20.123.456-7"
                   required
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#004A77] focus:border-transparent transition-all"
                 />
@@ -136,7 +136,7 @@ export const InicioSesionSSOWeb: React.FC = () => {
                 onClick={rellenarAlumnoPrueba}
                 className="text-[#004A77] hover:underline font-semibold flex items-center gap-1"
               >
-                <span>Cargar alumno de prueba (Bruno Díaz)</span>
+                <span>Cargar estudiante de prueba</span>
               </button>
 
               <span className="text-slate-400 text-[11px]">Single-Session Lock activo</span>

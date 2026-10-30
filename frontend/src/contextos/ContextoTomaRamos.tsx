@@ -11,7 +11,7 @@ import type {
   PasoFlujoTomaRamos,
 } from '../tipos';
 import {
-  ESTUDIANTE_INICIAL_BRUNO_DIAZ,
+  ESTUDIANTE_INICIAL_PRUEBA,
   ASIGNATURAS_INICIALES_5TO_SEMESTRE,
 } from '../datos';
 import { detectarTopeHorario } from '../utilidades/detectorTopesHorarios';
@@ -70,7 +70,7 @@ const METRICAS_INICIALES_FILA: MetricasFilaVirtual = {
 };
 
 export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [estudiante] = useState<Estudiante>(ESTUDIANTE_INICIAL_BRUNO_DIAZ);
+  const [estudiante] = useState<Estudiante>(ESTUDIANTE_INICIAL_PRUEBA);
   const [modoVisualizacion, establecerModoVisualizacion] = useState<ModoVisualizacion>('ESCRITORIO_WEB');
   const [pasoActual, establecerPasoActual] = useState<PasoFlujoTomaRamos>('INICIO_PORTAL');
   const [metricasFila, establecerMetricasFila] = useState<MetricasFilaVirtual>(METRICAS_INICIALES_FILA);

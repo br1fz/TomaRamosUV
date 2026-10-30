@@ -49,7 +49,7 @@ Servicios desplegados:
   > **"REGISTRO ESTRICTAMENTE ÚNICO POR ESTUDIANTE VERIFICADO"**  
   > *"El acceso a la toma de ramos y su turno en la fila virtual está asociado exclusivamente a su RUT y correo institucional. Iniciar sesión desde múltiples pestañas, ventanas de incógnito o dispositivos distintos transferirá automáticamente la sesión activa al último acceso sin adelantar su lugar en la fila."*
 - **Single-Session Lock (Exclusión Mutua):** Si se detecta un nuevo login con el mismo RUT, la pestaña anterior es invalidada inmediatamente mediante un modal informativo de sesión transferida.
-- **Usuario de prueba precargado:** Bruno Díaz Fernández (`bruno.diazf@estudiantes.uv.cl`, RUT `19.926.640-3`).
+- **Usuario de prueba precargado:** Estudiante de Prueba UV (`estudiante.prueba@estudiantes.uv.cl`, RUN `20.123.456-7`).
 
 ### Módulo 2: Sala de Espera Virtual Inteligente (Queue Engine)
 - **Métricas en Tiempo Real:** Puesto exacto (`#18`), cantidad de alumnos por delante, tiempo estimado de espera (~15 alumnos/minuto) y barra de progreso animada.
