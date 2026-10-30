@@ -2,15 +2,15 @@ import express from 'express';
 import cors from 'cors';
 
 const app = express();
-const PORT = process.env.PORT || 4001;
+const PUERTO = process.env.PORT || 4001;
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/health', (_req, res) => {
-  res.json({ service: 'auth-sso', status: 'OK' });
+app.get('/health', (_peticion, respuesta) => {
+  respuesta.json({ servicio: 'autenticacion-sso-uv', estado: 'ACTIVO' });
 });
 
-app.listen(PORT, () => {
-  console.log(`[Auth-SSO] Microservicio corriendo en puerto ${PORT}`);
+app.listen(PUERTO, () => {
+  console.log(`[Autenticación SSO UV] Microservicio corriendo en puerto ${PUERTO}`);
 });

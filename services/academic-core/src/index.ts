@@ -4,123 +4,131 @@ import http from 'http';
 import { Server } from 'socket.io';
 
 const app = express();
-const server = http.createServer(app);
-const PORT = process.env.PORT || 4000;
+const servidorHttp = http.createServer(app);
+const PUERTO = process.env.PORT || 4000;
 
-app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || '*',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN?.split(',') || '*',
+    credentials: true,
+  })
+);
 app.use(express.json());
 
-// In-Memory fallback store if Redis/Postgres are not yet connected locally
-interface StudentSession {
+// Estructura en memoria para respaldo y simulación local
+interface SesionEstudiante {
   rut: string;
-  socketId: string;
-  token: string;
-  timestamp: number;
+  identificadorSocket: string;
+  tokenAcceso: string;
+  marcaDeTiempo: number;
 }
-const activeSessions = new Map<string, StudentSession>();
-const virtualQueue: { token: string; rut: string; joinedAt: number }[] = [];
+const sesionesActivas = new Map<string, SesionEstudiante>();
+const filaVirtual: { tokenAcceso: string; rut: string; fechaIngreso: number }[] = [];
 
-// Socket.IO Setup
-const io = new Server(server, {
+// Configuración de WebSocket Socket.IO
+const socketServidor = new Server(servidorHttp, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST'],
   },
 });
 
-io.on('connection', (socket) => {
-  console.log(`[WebSocket] Cliente conectado: ${socket.id}`);
+socketServidor.on('connection', (socket) => {
+  console.log(`[WebSocket UV] Cliente conectado: ${socket.id}`);
 
-  socket.on('JOIN_QUEUE', ({ rut, token }) => {
-    // Single-Session Lock Check
-    const existing = activeSessions.get(rut);
-    if (existing && existing.socketId !== socket.id) {
-      // Invalidate previous socket
-      io.to(existing.socketId).emit('SESSION_TRANSFERRED', {
-        message: 'Tu sesión se ha transferido a otro dispositivo o ventana.',
+  // Evento cuando el estudiante se une a la fila virtual
+  socket.on('UNIRSE_A_FILA', ({ rut, tokenAcceso }) => {
+    // Verificación de Bloqueo de Sesión Única (Single-Session Lock)
+    const sesionPrevia = sesionesActivas.get(rut);
+    if (sesionPrevia && sesionPrevia.identificadorSocket !== socket.id) {
+      // Notificar e invalidar el socket previo
+      socketServidor.to(sesionPrevia.identificadorSocket).emit('SESION_TRANSFERIDA', {
+        mensaje: 'Tu sesión ha sido transferida a otro dispositivo o ventana.',
       });
     }
 
-    activeSessions.set(rut, { rut, socketId: socket.id, token, timestamp: Date.now() });
+    sesionesActivas.set(rut, {
+      rut,
+      identificadorSocket: socket.id,
+      tokenAcceso,
+      marcaDeTiempo: Date.now(),
+    });
 
-    if (!virtualQueue.some((q) => q.token === token)) {
-      virtualQueue.push({ token, rut, joinedAt: Date.now() });
+    if (!filaVirtual.some((item) => item.tokenAcceso === tokenAcceso)) {
+      filaVirtual.push({ tokenAcceso, rut, fechaIngreso: Date.now() });
     }
 
-    const position = virtualQueue.findIndex((q) => q.token === token) + 1;
-    socket.emit('QUEUE_UPDATE', {
-      position,
-      aheadCount: Math.max(0, position - 1),
-      estimatedWaitSeconds: position * 4,
-      progressPercentage: Math.min(100, Math.round(((18 - position) / 18) * 100)),
+    const posicionEnFila = filaVirtual.findIndex((item) => item.tokenAcceso === tokenAcceso) + 1;
+    socket.emit('ACTUALIZACION_FILA', {
+      posicionEnFila,
+      alumnosPorDelante: Math.max(0, posicionEnFila - 1),
+      tiempoEstimadoEsperaSegundos: posicionEnFila * 4,
+      porcentajeAvance: Math.min(100, Math.round(((18 - posicionEnFila) / 18) * 100)),
     });
   });
 
   socket.on('disconnect', () => {
-    console.log(`[WebSocket] Cliente desconectado: ${socket.id}`);
+    console.log(`[WebSocket UV] Cliente desconectado: ${socket.id}`);
   });
 });
 
-// Health check endpoint
-app.get('/health', (_req, res) => {
-  res.json({
-    status: 'UP',
-    service: 'UV Academic Core & Virtual Queue Engine',
-    timestamp: new Date().toISOString(),
+// Endpoint de verificación de salud del servicio
+app.get('/health', (_peticion, respuesta) => {
+  respuesta.json({
+    estado: 'ACTIVO',
+    servicio: 'Núcleo Académico y Motor de Fila Virtual UV',
+    marcaDeTiempo: new Date().toISOString(),
   });
 });
 
-// Single-Session Lock Login Endpoint
-app.post('/api/auth/login', (req, res) => {
-  const { rut, email } = req.body;
-  if (!rut || !email) {
-    return res.status(400).json({ error: 'RUT y correo requeridos.' });
+// Endpoint de Inicio de Sesión Institucional con Bloqueo de Sesión Única
+app.post('/api/auth/login', (peticion, respuesta) => {
+  const { rut, correo } = peticion.body;
+  if (!rut || !correo) {
+    return respuesta.status(400).json({ error: 'RUN y correo institucional requeridos.' });
   }
 
-  // Generate turn token
-  const token = 'tok_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+  // Generar token único de turno
+  const tokenAcceso = 'TOK_' + Math.random().toString(36).substring(2, 10).toUpperCase();
 
-  // Invalidate any old session
-  const existing = activeSessions.get(rut);
-  if (existing) {
-    io.to(existing.socketId).emit('SESSION_TRANSFERRED', {
-      message: 'Sesión transferida por nuevo inicio de sesión.',
+  // Invalidar cualquier sesión activa previa
+  const sesionPrevia = sesionesActivas.get(rut);
+  if (sesionPrevia) {
+    socketServidor.to(sesionPrevia.identificadorSocket).emit('SESION_TRANSFERIDA', {
+      mensaje: 'Sesión transferida por nuevo inicio de sesión institucional.',
     });
   }
 
-  return res.json({
-    token,
-    student: {
+  return respuesta.json({
+    tokenAcceso,
+    estudiante: {
       rut,
-      email,
-      name: 'Bruno Díaz Fernández',
-      career: 'Ingeniería Civil Informática',
-      careerCode: '19085',
-      curriculumPlan: 'Malla 5125 / Plan Común UV',
-      semester: 5,
+      correo,
+      nombre: 'Bruno Díaz Fernández',
+      carrera: 'Ingeniería Civil Informática',
+      codigoCarrera: '19085',
+      planCurricular: 'Malla 5125 / Plan Común UV',
+      semestreActual: 5,
     },
   });
 });
 
-// Atomic Enrollment Endpoint
-app.post('/api/academic/enroll', (req, res) => {
-  const { studentRut, selectedSections } = req.body;
-  if (!studentRut || !Array.isArray(selectedSections)) {
-    return res.status(400).json({ error: 'Datos de inscripción inválidos.' });
+// Endpoint de Inscripción Curricular Atómica
+app.post('/api/academico/inscribir', (peticion, respuesta) => {
+  const { rutEstudiante, seccionesSeleccionadas } = peticion.body;
+  if (!rutEstudiante || !Array.isArray(seccionesSeleccionadas)) {
+    return respuesta.status(400).json({ error: 'Datos de inscripción curricular inválidos.' });
   }
 
-  const verificationCode = `UV-2026-ICI-5125-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-  return res.json({
-    success: true,
-    verificationCode,
-    message: 'Carga curricular registrada atómicamente.',
-    timestamp: new Date().toISOString(),
+  const codigoVerificacion = `UV-2026-ICI-5125-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+  return respuesta.json({
+    exito: true,
+    codigoVerificacion,
+    mensaje: 'Carga curricular registrada atómicamente en la base de datos UV.',
+    marcaDeTiempo: new Date().toISOString(),
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`[UV API] Servidor activo en puerto ${PORT}`);
+servidorHttp.listen(PUERTO, () => {
+  console.log(`[API UV] Servidor Académico activo en puerto ${PUERTO}`);
 });

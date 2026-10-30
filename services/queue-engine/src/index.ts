@@ -1,15 +1,15 @@
 import http from 'http';
 import { Server } from 'socket.io';
 
-const server = http.createServer();
-const PORT = process.env.PORT || 4002;
+const servidorHttp = http.createServer();
+const PUERTO = process.env.PORT || 4002;
 
-const io = new Server(server, { cors: { origin: '*' } });
+const socketServidor = new Server(servidorHttp, { cors: { origin: '*' } });
 
-io.on('connection', (socket) => {
-  console.log(`[Queue Engine] Conexión establecida: ${socket.id}`);
+socketServidor.on('connection', (socket) => {
+  console.log(`[Motor Fila UV] Conexión establecida con cliente: ${socket.id}`);
 });
 
-server.listen(PORT, () => {
-  console.log(`[Queue Engine] Microservicio de fila corriendo en puerto ${PORT}`);
+servidorHttp.listen(PUERTO, () => {
+  console.log(`[Motor Fila UV] Microservicio de fila corriendo en puerto ${PUERTO}`);
 });

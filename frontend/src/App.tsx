@@ -1,65 +1,65 @@
 import React from 'react';
-import { QueueProvider, useQueue } from './context/QueueEnrollmentContext';
-import { DevControlBar } from './components/dev/DevControlBar';
-import { WebHeader } from './components/web/WebHeader';
-import { WebSidebar } from './components/web/WebSidebar';
-import { WebHomePortal } from './components/web/WebHomePortal';
-import { WebLoginSSO } from './components/web/WebLoginSSO';
-import { WebQueueWidget } from './components/web/WebQueueWidget';
-import { WebCourseSelector } from './components/web/WebCourseSelector';
-import { WebTimetableGrid } from './components/web/WebTimetableGrid';
-import { MobileFrame } from './components/mobile/MobileFrame';
-import { StructuredScheduleView } from './components/shared/StructuredScheduleView';
-import { OfficialVoucher } from './components/shared/OfficialVoucher';
-import { TurnArrivalCelebration } from './components/shared/TurnArrivalCelebration';
-import { ConcurrencyModal } from './components/shared/ConcurrencyModal';
-import { ConflictModal } from './components/shared/ConflictModal';
+import { ProveedorTomaRamos, usarTomaRamos } from './contextos/ContextoTomaRamos';
+import { BarraControlDesarrollador } from './componentes/desarrollo/BarraControlDesarrollador';
+import { EncabezadoPortalWeb } from './componentes/escritorio_web/EncabezadoPortalWeb';
+import { BarraLateralEstudianteWeb } from './componentes/escritorio_web/BarraLateralEstudianteWeb';
+import { InicioPortalAlumnosWeb } from './componentes/escritorio_web/InicioPortalAlumnosWeb';
+import { InicioSesionSSOWeb } from './componentes/escritorio_web/InicioSesionSSOWeb';
+import { TarjetaFilaVirtualWeb } from './componentes/escritorio_web/TarjetaFilaVirtualWeb';
+import { SelectorAsignaturasWeb } from './componentes/escritorio_web/SelectorAsignaturasWeb';
+import { MallaHorariaSemanalWeb } from './componentes/escritorio_web/MallaHorariaSemanalWeb';
+import { CarcasaTelefonoMovil } from './componentes/movil_apptui/CarcasaTelefonoMovil';
+import { VistaHorarioArmado } from './componentes/comunes/VistaHorarioArmado';
+import { ComprobanteOficialInscripcion } from './componentes/comunes/ComprobanteOficialInscripcion';
+import { CelebracionLlegadaTurno } from './componentes/comunes/CelebracionLlegadaTurno';
+import { ModalSesionDuplicada } from './componentes/comunes/ModalSesionDuplicada';
+import { ModalTopeHorario } from './componentes/comunes/ModalTopeHorario';
 
-const AppContent: React.FC = () => {
-  const { viewMode, step, showTurnCelebration, dismissTurnCelebration } = useQueue();
+const ContenidoPrincipalAplicacion: React.FC = () => {
+  const { modoVisualizacion, pasoActual, mostrarCelebracionTurno, cerrarCelebracionTurno } = usarTomaRamos();
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans selection:bg-[#004A77] selection:text-white">
-      {/* Dev & Simulation Control Bar (Always visible at top) */}
-      <DevControlBar />
+      {/* Barra de Desarrollo y Simulación (Siempre visible en la parte superior) */}
+      <BarraControlDesarrollador />
 
-      {/* Main Content dependent on viewMode */}
-      {viewMode === 'MOBILE' ? (
-        /* Mobile APPTUI UV View */
+      {/* Contenido Principal condicionado por modoVisualizacion */}
+      {modoVisualizacion === 'MOVIL_APPTUI' ? (
+        /* Vista Móvil APPTUI UV */
         <main className="flex-1 bg-slate-900 flex items-center justify-center p-2 sm:p-4">
-          <MobileFrame />
+          <CarcasaTelefonoMovil />
         </main>
       ) : (
-        /* Desktop Portal UV View */
+        /* Vista de Escritorio Portal UV */
         <div className="flex-1 flex flex-col">
-          <WebHeader />
+          <EncabezadoPortalWeb />
 
           <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-            {step === 'HOME' && <WebHomePortal />}
+            {pasoActual === 'INICIO_PORTAL' && <InicioPortalAlumnosWeb />}
 
-            {step === 'LOGIN' && <WebLoginSSO />}
+            {pasoActual === 'INICIO_SESION_SSO' && <InicioSesionSSOWeb />}
 
-            {step === 'QUEUE' && <WebQueueWidget />}
+            {pasoActual === 'FILA_VIRTUAL' && <TarjetaFilaVirtualWeb />}
 
-            {step === 'ENROLLMENT' && (
+            {pasoActual === 'SELECCION_RAMOS' && (
               <div className="flex flex-col lg:flex-row gap-6 items-start">
-                {/* Left Column: Student Profile & Countdown */}
-                <WebSidebar />
+                {/* Columna Izquierda: Perfil y Cuenta Regresiva */}
+                <BarraLateralEstudianteWeb />
 
-                {/* Right Column: Courses & Interactive Timetable Grid */}
+                {/* Columna Derecha: Selector de Asignaturas y Malla Horaria Interactiva */}
                 <div className="flex-1 w-full space-y-6">
-                  <WebCourseSelector />
-                  <WebTimetableGrid />
+                  <SelectorAsignaturasWeb />
+                  <MallaHorariaSemanalWeb />
                 </div>
               </div>
             )}
 
-            {step === 'SCHEDULE_VIEW' && <StructuredScheduleView />}
+            {pasoActual === 'HORARIO_ARMADO' && <VistaHorarioArmado />}
 
-            {step === 'VOUCHER' && <OfficialVoucher />}
+            {pasoActual === 'COMPROBANTE_OFICIAL' && <ComprobanteOficialInscripcion />}
           </main>
 
-          {/* Desktop Footer */}
+          {/* Pie Institucional de Escritorio */}
           <footer className="bg-white border-t border-slate-200 mt-auto py-6 px-4 text-center text-xs text-slate-500 print:hidden">
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -76,23 +76,23 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      {/* Celebratory Turn Arrival Moment: "¡Uy! ¡Al fin me toca!" */}
-      <TurnArrivalCelebration
-        isOpen={showTurnCelebration}
-        onProceed={dismissTurnCelebration}
+      {/* Momento Celebratorio de Llegada de Turno: "¡Uy! ¡Al fin me toca!" */}
+      <CelebracionLlegadaTurno
+        estaAbierto={mostrarCelebracionTurno}
+        alContinuar={cerrarCelebracionTurno}
       />
 
-      {/* Shared Global Modals */}
-      <ConcurrencyModal />
-      <ConflictModal />
+      {/* Modales Globales Compartidos */}
+      <ModalSesionDuplicada />
+      <ModalTopeHorario />
     </div>
   );
 };
 
 export default function App() {
   return (
-    <QueueProvider>
-      <AppContent />
-    </QueueProvider>
+    <ProveedorTomaRamos>
+      <ContenidoPrincipalAplicacion />
+    </ProveedorTomaRamos>
   );
 }

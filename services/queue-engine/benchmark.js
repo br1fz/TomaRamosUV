@@ -1,44 +1,43 @@
 /**
- * UV VIRTUAL QUEUE BENCHMARK SIMULATOR
- * Simula 100 usuarios concurrentes ingresando a la fila virtual de Toma de Ramos UV
+ * SIMULADOR DE CARGA Y RENDIMIENTO - FILA VIRTUAL UNIVERSIDAD DE VALPARAÍSO
+ * Simula 100 estudiantes concurrentes ingresando a la fila virtual de Toma de Ramos UV (Malla 5125)
  */
 
-const TOTAL_STUDENTS = 100;
-const SIMULATION_DURATION_MS = 10000;
+const TOTAL_ESTUDIANTES = 100;
 
-console.log('===============================================================');
-console.log('🏛️  SIMULADOR DE CARGA MASIVA - FILA VIRTUAL UV (MALLA 5125) 🏛️');
-console.log('===============================================================');
-console.log(`[INFO] Simulando ${TOTAL_STUDENTS} estudiantes concurrentes...`);
+console.log('=====================================================================');
+console.log('🏛️  SIMULADOR DE CARGA MASIVA - SALA DE ESPERA UV (MALLA 5125)  🏛️');
+console.log('=====================================================================');
+console.log(`[INFO] Simulando ${TOTAL_ESTUDIANTES} estudiantes concurrentes...`);
 
-const students = Array.from({ length: TOTAL_STUDENTS }, (_, i) => ({
-  id: i + 1,
-  rut: `${18000000 + i}-${(i % 9) + 1}`,
-  email: `estudiante.${i + 1}@estudiantes.uv.cl`,
-  arrivalTimestamp: Date.now() + Math.floor(Math.random() * 2000),
+const estudiantesEnFila = Array.from({ length: TOTAL_ESTUDIANTES }, (_, indice) => ({
+  id: indice + 1,
+  rut: `${18000000 + indice}-${(indice % 9) + 1}`,
+  correo: `estudiante.${indice + 1}@estudiantes.uv.cl`,
+  marcaDeTiempoLlegada: Date.now() + Math.floor(Math.random() * 2000),
 }));
 
-// Sort by arrival timestamp (FIFO)
-students.sort((a, b) => a.arrivalTimestamp - b.arrivalTimestamp);
+// Ordenamiento estricto por orden de llegada (FIFO ZSET)
+estudiantesEnFila.sort((a, b) => a.marcaDeTiempoLlegada - b.marcaDeTiempoLlegada);
 
-console.log(`[FIFO ZSET] Estudiantes encolados en orden estricto de llegada:`);
-console.log(` -> Primer estudiante en fila: ${students[0].email} (Puesto #1)`);
-console.log(` -> Estudiante mediano en fila: ${students[49].email} (Puesto #50)`);
-console.log(` -> Último estudiante en fila: ${students[99].email} (Puesto #100)`);
+console.log(`[ORDEN FIFO REDIS] Estudiantes encolados en memoria:`);
+console.log(` -> Primer estudiante en fila: ${estudiantesEnFila[0].correo} (Puesto #1)`);
+console.log(` -> Estudiante mediano en fila: ${estudiantesEnFila[49].correo} (Puesto #50)`);
+console.log(` -> Último estudiante en fila: ${estudiantesEnFila[99].correo} (Puesto #100)`);
 
-let processed = 0;
-const interval = setInterval(() => {
-  if (processed >= TOTAL_STUDENTS) {
-    clearInterval(interval);
-    console.log('===============================================================');
-    console.log('✓ BENCHMARK COMPLETADO: 100/100 Alumnos atendidos exitosamente.');
+let atendidos = 0;
+const temporizadorAtencion = setInterval(() => {
+  if (atendidos >= TOTAL_ESTUDIANTES) {
+    clearInterval(temporizadorAtencion);
+    console.log('=====================================================================');
+    console.log('✓ PRUEBA COMPLETADA: 100/100 Alumnos atendidos exitosamente.');
     console.log('✓ Cero sobrecupos generados. Transacciones atómicas garantizadas.');
-    console.log('===============================================================');
+    console.log('=====================================================================');
     return;
   }
 
-  const batchSize = Math.min(5, TOTAL_STUDENTS - processed);
-  processed += batchSize;
-  const remaining = TOTAL_STUDENTS - processed;
-  console.log(`[PROCESAMIENTO] Procesados ${processed}/${TOTAL_STUDENTS} alumnos (Restantes en cola: ${remaining})`);
+  const tamanoLote = Math.min(5, TOTAL_ESTUDIANTES - atendidos);
+  atendidos += tamanoLote;
+  const restantes = TOTAL_ESTUDIANTES - atendidos;
+  console.log(`[ATENCIÓN ATÓMICA] Procesados ${atendidos}/${TOTAL_ESTUDIANTES} alumnos (Restantes en cola: ${restantes})`);
 }, 300);
