@@ -3,17 +3,20 @@ import { QueueProvider, useQueue } from './context/QueueEnrollmentContext';
 import { DevControlBar } from './components/dev/DevControlBar';
 import { WebHeader } from './components/web/WebHeader';
 import { WebSidebar } from './components/web/WebSidebar';
+import { WebHomePortal } from './components/web/WebHomePortal';
 import { WebLoginSSO } from './components/web/WebLoginSSO';
 import { WebQueueWidget } from './components/web/WebQueueWidget';
 import { WebCourseSelector } from './components/web/WebCourseSelector';
 import { WebTimetableGrid } from './components/web/WebTimetableGrid';
 import { MobileFrame } from './components/mobile/MobileFrame';
+import { StructuredScheduleView } from './components/shared/StructuredScheduleView';
 import { OfficialVoucher } from './components/shared/OfficialVoucher';
+import { TurnArrivalCelebration } from './components/shared/TurnArrivalCelebration';
 import { ConcurrencyModal } from './components/shared/ConcurrencyModal';
 import { ConflictModal } from './components/shared/ConflictModal';
 
 const AppContent: React.FC = () => {
-  const { viewMode, step } = useQueue();
+  const { viewMode, step, showTurnCelebration, dismissTurnCelebration } = useQueue();
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans selection:bg-[#004A77] selection:text-white">
@@ -32,6 +35,8 @@ const AppContent: React.FC = () => {
           <WebHeader />
 
           <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+            {step === 'HOME' && <WebHomePortal />}
+
             {step === 'LOGIN' && <WebLoginSSO />}
 
             {step === 'QUEUE' && <WebQueueWidget />}
@@ -49,11 +54,13 @@ const AppContent: React.FC = () => {
               </div>
             )}
 
+            {step === 'SCHEDULE_VIEW' && <StructuredScheduleView />}
+
             {step === 'VOUCHER' && <OfficialVoucher />}
           </main>
 
           {/* Desktop Footer */}
-          <footer className="bg-white border-t border-slate-200 mt-auto py-6 px-4 text-center text-xs text-slate-500">
+          <footer className="bg-white border-t border-slate-200 mt-auto py-6 px-4 text-center text-xs text-slate-500 print:hidden">
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <img src="/uv_azul.svg" alt="UV" className="h-7 w-auto" />
@@ -68,6 +75,12 @@ const AppContent: React.FC = () => {
           </footer>
         </div>
       )}
+
+      {/* Celebratory Turn Arrival Moment: "¡Uy! ¡Al fin me toca!" */}
+      <TurnArrivalCelebration
+        isOpen={showTurnCelebration}
+        onProceed={dismissTurnCelebration}
+      />
 
       {/* Shared Global Modals */}
       <ConcurrencyModal />

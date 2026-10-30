@@ -23,10 +23,12 @@ export const DevControlBar: React.FC = () => {
   } = useQueue();
 
   const steps: { key: AppStep; label: string }[] = [
+    { key: 'HOME', label: '0. Inicio Portal/App' },
     { key: 'LOGIN', label: '1. Login SSO' },
     { key: 'QUEUE', label: '2. Fila Virtual' },
     { key: 'ENROLLMENT', label: '3. Toma de Ramos' },
-    { key: 'VOUCHER', label: '4. Comprobante' },
+    { key: 'SCHEDULE_VIEW', label: '4. Horario Armado' },
+    { key: 'VOUCHER', label: '5. Comprobante QR' },
   ];
 
   return (
@@ -36,7 +38,7 @@ export const DevControlBar: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 font-bold text-sky-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="uppercase tracking-wider">Simulador UV Malla 5125</span>
+            <span className="uppercase tracking-wider">Wireflow UV • Malla 5125</span>
           </div>
 
           <div className="h-4 w-px bg-slate-700 hidden sm:block" />
@@ -76,7 +78,7 @@ export const DevControlBar: React.FC = () => {
               onClick={() => setStep(s.key)}
               className={`px-2 py-1 rounded-md font-semibold whitespace-nowrap transition-all ${
                 step === s.key
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -99,6 +101,15 @@ export const DevControlBar: React.FC = () => {
           )}
 
           <button
+            onClick={testAudioAlert}
+            title="Probar sonido festivo y amigable: '¡Uy! ¡Al fin me toca!'"
+            className="px-2.5 py-1 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-950/70 border border-emerald-700/50 rounded-md font-bold flex items-center gap-1.5 transition-all"
+          >
+            <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">Sonido "¡Al fin me toca!"</span>
+          </button>
+
+          <button
             onClick={simulateConcurrencyClash}
             title="Simula que este alumno abrió sesión en otra pestaña o smartphone"
             className="px-2.5 py-1 bg-red-950/40 text-red-300 hover:bg-red-950/70 border border-red-700/50 rounded-md font-bold flex items-center gap-1 transition-all"
@@ -108,16 +119,8 @@ export const DevControlBar: React.FC = () => {
           </button>
 
           <button
-            onClick={testAudioAlert}
-            title="Probar sonido de campana de turno"
-            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition-all"
-          >
-            <Volume2 className="w-3.5 h-3.5" />
-          </button>
-
-          <button
             onClick={resetSimulation}
-            title="Reiniciar todos los estados y cupos"
+            title="Reiniciar todos los estados y cupos al inicio del flujo"
             className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-md transition-all"
           >
             <RotateCcw className="w-3.5 h-3.5" />

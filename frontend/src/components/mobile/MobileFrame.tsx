@@ -2,18 +2,26 @@ import React, { useState } from 'react';
 import { MobileHeader } from './MobileHeader';
 import { MobileDrawer } from './MobileDrawer';
 import { MobileNavBar } from './MobileNavBar';
+import { MobileHomeApptui } from './MobileHomeApptui';
 import { MobileQueueView } from './MobileQueueView';
 import { MobileEnrollment } from './MobileEnrollment';
 import { WebLoginSSO } from '../web/WebLoginSSO';
+import { StructuredScheduleView } from '../shared/StructuredScheduleView';
 import { OfficialVoucher } from '../shared/OfficialVoucher';
 import { useQueue } from '../../context/QueueEnrollmentContext';
 import { Smartphone, Monitor } from 'lucide-react';
 
 export const MobileFrame: React.FC = () => {
-  const { step } = useQueue();
+  const { step, setStep } = useQueue();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState('novedades');
   const [useDeviceChassis, setUseDeviceChassis] = useState(true);
+
+  const handleTabChange = (tab: string) => {
+    setMobileTab(tab);
+    if (tab === 'novedades') setStep('HOME');
+    if (tab === 'actividades') setStep('SCHEDULE_VIEW');
+  };
 
   const content = (
     <div className="bg-[#14151A] text-slate-100 min-h-full flex flex-col relative">
@@ -21,13 +29,15 @@ export const MobileFrame: React.FC = () => {
       <MobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <main className="flex-1 overflow-y-auto">
+        {step === 'HOME' && <MobileHomeApptui />}
         {step === 'LOGIN' && <WebLoginSSO />}
         {step === 'QUEUE' && <MobileQueueView />}
         {step === 'ENROLLMENT' && <MobileEnrollment />}
+        {step === 'SCHEDULE_VIEW' && <StructuredScheduleView />}
         {step === 'VOUCHER' && <OfficialVoucher />}
       </main>
 
-      <MobileNavBar activeTab={mobileTab} onTabChange={setMobileTab} />
+      <MobileNavBar activeTab={mobileTab} onTabChange={handleTabChange} />
     </div>
   );
 
@@ -42,7 +52,7 @@ export const MobileFrame: React.FC = () => {
           }`}
         >
           <Smartphone className="w-3.5 h-3.5" />
-          <span>Marco Smartphone</span>
+          <span>Marco Smartphone (APPTUI)</span>
         </button>
         <button
           onClick={() => setUseDeviceChassis(false)}

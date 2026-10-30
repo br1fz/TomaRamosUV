@@ -12,7 +12,7 @@ import type {
 } from '../types';
 import { INITIAL_STUDENT, INITIAL_SUBJECTS } from '../data/subjects';
 import { checkScheduleConflict } from '../utils/conflictDetector';
-import { playTurnChime, playConflictAlert, playSuccessChime } from '../utils/audio';
+import { playTurnArrivedCelebrationSound, playConflictAlert, playSuccessChime } from '../utils/audio';
 import { sessionChannel } from '../utils/broadcast';
 
 interface QueueContextType {
@@ -31,6 +31,9 @@ interface QueueContextType {
   clearSessionTransferred: () => void;
   waitlistedSubjects: Record<string, number>;
   voucher: OfficialVoucher | null;
+  isEnrollmentCompleted: boolean;
+  showTurnCelebration: boolean;
+  dismissTurnCelebration: () => void;
   // Controls
   login: (email: string, rut: string) => void;
   logout: () => void;
@@ -62,7 +65,7 @@ const INITIAL_QUEUE_METRICS: QueueMetrics = {
 export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [student] = useState<Student>(INITIAL_STUDENT);
   const [viewMode, setViewMode] = useState<AppViewMode>('DESKTOP');
-  const [step, setStep] = useState<AppStep>('LOGIN');
+  const [step, setStep] = useState<AppStep>('HOME');
   const [queueMetrics, setQueueMetrics] = useState<QueueMetrics>(INITIAL_QUEUE_METRICS);
   const [subjects, setSubjects] = useState<Subject[]>(INITIAL_SUBJECTS);
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourseItem[]>([]);
@@ -70,6 +73,8 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [sessionTransferred, setSessionTransferred] = useState<boolean>(false);
   const [waitlistedSubjects, setWaitlistedSubjects] = useState<Record<string, number>>({});
   const [voucher, setVoucher] = useState<OfficialVoucher | null>(null);
+  const [isEnrollmentCompleted, setIsEnrollmentCompleted] = useState<boolean>(false);
+  const [showTurnCelebration, setShowTurnCelebration] = useState<boolean>(false);
 
   // Queue speed multiplier ref
   const speedRef = useRef<number>(1);
@@ -98,15 +103,14 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           clearInterval(interval);
           isAdmittedRef.current = true;
 
-          // Sound alert if enabled
+          // Sound alert if enabled: friendly celebration chime
           if (prev.soundAlertEnabled) {
-            playTurnChime();
+            playTurnArrivedCelebrationSound();
           }
 
-          // Advance to ENROLLMENT
-          setTimeout(() => {
-            setStep('ENROLLMENT');
-          }, 800);
+          // Trigger "Uy! Al fin me toca!" modal
+          setShowTurnCelebration(true);
+          setStep('ENROLLMENT');
 
           return {
             ...prev,
@@ -174,9 +178,11 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const logout = () => {
-    setStep('LOGIN');
+    setStep('HOME');
     setEnrolledCourses([]);
     setVoucher(null);
+    setIsEnrollmentCompleted(false);
+    setShowTurnCelebration(false);
     setQueueMetrics(INITIAL_QUEUE_METRICS);
     setSessionTransferred(false);
   };
@@ -186,7 +192,11 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const testAudioAlert = () => {
-    playTurnChime();
+    playTurnArrivedCelebrationSound();
+  };
+
+  const dismissTurnCelebration = () => {
+    setShowTurnCelebration(false);
   };
 
   const selectSection = (subject: Subject, section: CourseSection): boolean => {
@@ -276,7 +286,8 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     setVoucher(newVoucher);
-    setStep('VOUCHER');
+    setIsEnrollmentCompleted(true);
+    setStep('SCHEDULE_VIEW');
     playSuccessChime();
     return true;
   };
@@ -310,8 +321,10 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSessionTransferred(false);
     setWaitlistedSubjects({});
     setVoucher(null);
+    setIsEnrollmentCompleted(false);
+    setShowTurnCelebration(false);
     setQueueMetrics(INITIAL_QUEUE_METRICS);
-    setStep('LOGIN');
+    setStep('HOME');
   };
 
   return (
@@ -332,6 +345,9 @@ export const QueueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         clearSessionTransferred,
         waitlistedSubjects,
         voucher,
+        isEnrollmentCompleted,
+        showTurnCelebration,
+        dismissTurnCelebration,
         login,
         logout,
         setSoundAlert,

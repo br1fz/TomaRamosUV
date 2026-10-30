@@ -88,4 +88,4 @@ export interface OfficialVoucher {
 }
 
 export type AppViewMode = 'DESKTOP' | 'MOBILE' | 'FREE';
-export type AppStep = 'LOGIN' | 'QUEUE' | 'ENROLLMENT' | 'VOUCHER';
+export type AppStep = 'HOME' | 'LOGIN' | 'QUEUE' | 'ENROLLMENT' | 'SCHEDULE_VIEW' | 'VOUCHER';
