@@ -1,7 +1,7 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import http from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 const app = express();
 const servidorHttp = http.createServer(app);
@@ -33,11 +33,14 @@ const socketServidor = new Server(servidorHttp, {
   },
 });
 
-socketServidor.on('connection', (socket) => {
+socketServidor.on('connection', (socket: Socket) => {
   console.log(`[WebSocket UV] Cliente conectado: ${socket.id}`);
 
   // Evento cuando el estudiante se une a la fila virtual
-  socket.on('UNIRSE_A_FILA', ({ rut, tokenAcceso }) => {
+  socket.on('UNIRSE_A_FILA', (datos: { rut?: string; tokenAcceso?: string }) => {
+    const { rut, tokenAcceso } = datos || {};
+    if (!rut || !tokenAcceso) return;
+
     // Verificación de Bloqueo de Sesión Única (Single-Session Lock)
     const sesionPrevia = sesionesActivas.get(rut);
     if (sesionPrevia && sesionPrevia.identificadorSocket !== socket.id) {
@@ -63,7 +66,7 @@ socketServidor.on('connection', (socket) => {
       posicionEnFila,
       alumnosPorDelante: Math.max(0, posicionEnFila - 1),
       tiempoEstimadoEsperaSegundos: posicionEnFila * 4,
-      porcentajeAvance: Math.min(100, Math.round(((18 - posicionEnFila) / 18) * 100)),
+      porcentajeAvance: Math.max(0, Math.min(100, Math.round(((18 - posicionEnFila) / 18) * 100))),
     });
   });
 
@@ -73,7 +76,7 @@ socketServidor.on('connection', (socket) => {
 });
 
 // Endpoint de verificación de salud del servicio
-app.get('/health', (_peticion, respuesta) => {
+app.get('/health', (_peticion: Request, respuesta: Response) => {
   respuesta.json({
     estado: 'ACTIVO',
     servicio: 'Núcleo Académico y Motor de Fila Virtual UV',
@@ -82,10 +85,11 @@ app.get('/health', (_peticion, respuesta) => {
 });
 
 // Endpoint de Inicio de Sesión Institucional con Bloqueo de Sesión Única
-app.post('/api/auth/login', (peticion, respuesta) => {
-  const { rut, correo } = peticion.body;
+app.post('/api/auth/login', (peticion: Request, respuesta: Response) => {
+  const { rut, correo } = peticion.body || {};
   if (!rut || !correo) {
-    return respuesta.status(400).json({ error: 'RUN y correo institucional requeridos.' });
+    respuesta.status(400).json({ error: 'RUN y correo institucional requeridos.' });
+    return;
   }
 
   // Generar token único de turno
@@ -99,7 +103,7 @@ app.post('/api/auth/login', (peticion, respuesta) => {
     });
   }
 
-  return respuesta.json({
+  respuesta.json({
     tokenAcceso,
     estudiante: {
       rut,
@@ -114,14 +118,15 @@ app.post('/api/auth/login', (peticion, respuesta) => {
 });
 
 // Endpoint de Inscripción Curricular Atómica
-app.post('/api/academico/inscribir', (peticion, respuesta) => {
-  const { rutEstudiante, seccionesSeleccionadas } = peticion.body;
+app.post('/api/academico/inscribir', (peticion: Request, respuesta: Response) => {
+  const { rutEstudiante, seccionesSeleccionadas } = peticion.body || {};
   if (!rutEstudiante || !Array.isArray(seccionesSeleccionadas)) {
-    return respuesta.status(400).json({ error: 'Datos de inscripción curricular inválidos.' });
+    respuesta.status(400).json({ error: 'Datos de inscripción curricular inválidos.' });
+    return;
   }
 
   const codigoVerificacion = `UV-2026-ICI-5125-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-  return respuesta.json({
+  respuesta.json({
     exito: true,
     codigoVerificacion,
     mensaje: 'Carga curricular registrada atómicamente en la base de datos UV.',
