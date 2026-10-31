@@ -29,7 +29,7 @@ export const CarcasaTelefonoMovil: React.FC = () => {
       <MenuLateralApptui estaAbierto={menuAbierto} alCerrar={() => establecerMenuAbierto(false)} />
 
       <main className="flex-1 overflow-y-auto">
-        {pasoActual === 'INICIO_PORTAL' && <InicioApptuiMovil />}
+        {(pasoActual === 'INICIO_PORTAL' || pasoActual === 'PORTAL_ALUMNOS') && <InicioApptuiMovil />}
         {pasoActual === 'INICIO_SESION_SSO' && <InicioSesionSSOWeb />}
         {pasoActual === 'FILA_VIRTUAL' && <VistaEsperaFilaApptui />}
         {pasoActual === 'SELECCION_RAMOS' && <InscripcionRamosApptui />}

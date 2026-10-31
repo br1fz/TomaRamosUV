@@ -3,6 +3,7 @@ import { ProveedorTomaRamos, usarTomaRamos } from './contextos/ContextoTomaRamos
 import { BarraControlDesarrollador } from './componentes/desarrollo/BarraControlDesarrollador';
 import { EncabezadoPortalWeb } from './componentes/escritorio_web/EncabezadoPortalWeb';
 import { BarraLateralEstudianteWeb } from './componentes/escritorio_web/BarraLateralEstudianteWeb';
+import { PaginaEntradaPortalUV } from './componentes/escritorio_web/PaginaEntradaPortalUV';
 import { InicioPortalAlumnosWeb } from './componentes/escritorio_web/InicioPortalAlumnosWeb';
 import { InicioSesionSSOWeb } from './componentes/escritorio_web/InicioSesionSSOWeb';
 import { TarjetaFilaVirtualWeb } from './componentes/escritorio_web/TarjetaFilaVirtualWeb';
@@ -32,47 +33,55 @@ const ContenidoPrincipalAplicacion: React.FC = () => {
       ) : (
         /* Vista de Escritorio Portal UV */
         <div className="flex-1 flex flex-col">
-          <EncabezadoPortalWeb />
+          {pasoActual === 'INICIO_PORTAL' ? (
+            /* Página de Entrada Oficial Portal UV (portal.uv.cl/loginInstitucional) */
+            <PaginaEntradaPortalUV />
+          ) : pasoActual === 'PORTAL_ALUMNOS' ? (
+            /* Portal Académico de Alumnos Oficial con el nuevo botón de Toma de Ramos */
+            <InicioPortalAlumnosWeb />
+          ) : (
+            <>
+              <EncabezadoPortalWeb />
 
-          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-            {pasoActual === 'INICIO_PORTAL' && <InicioPortalAlumnosWeb />}
+              <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+                {pasoActual === 'INICIO_SESION_SSO' && <InicioSesionSSOWeb />}
 
-            {pasoActual === 'INICIO_SESION_SSO' && <InicioSesionSSOWeb />}
+                {pasoActual === 'FILA_VIRTUAL' && <TarjetaFilaVirtualWeb />}
 
-            {pasoActual === 'FILA_VIRTUAL' && <TarjetaFilaVirtualWeb />}
+                {pasoActual === 'SELECCION_RAMOS' && (
+                  <div className="flex flex-col lg:flex-row gap-6 items-start">
+                    {/* Columna Izquierda: Perfil y Cuenta Regresiva */}
+                    <BarraLateralEstudianteWeb />
 
-            {pasoActual === 'SELECCION_RAMOS' && (
-              <div className="flex flex-col lg:flex-row gap-6 items-start">
-                {/* Columna Izquierda: Perfil y Cuenta Regresiva */}
-                <BarraLateralEstudianteWeb />
+                    {/* Columna Derecha: Selector de Asignaturas y Malla Horaria Interactiva */}
+                    <div className="flex-1 w-full space-y-6">
+                      <SelectorAsignaturasWeb />
+                      <MallaHorariaSemanalWeb />
+                    </div>
+                  </div>
+                )}
 
-                {/* Columna Derecha: Selector de Asignaturas y Malla Horaria Interactiva */}
-                <div className="flex-1 w-full space-y-6">
-                  <SelectorAsignaturasWeb />
-                  <MallaHorariaSemanalWeb />
+                {pasoActual === 'HORARIO_ARMADO' && <VistaHorarioArmado />}
+
+                {pasoActual === 'COMPROBANTE_OFICIAL' && <ComprobanteOficialInscripcion />}
+              </main>
+
+              {/* Pie Institucional de Escritorio */}
+              <footer className="bg-white border-t border-slate-200 mt-auto py-6 px-4 text-center text-xs text-slate-500 print:hidden">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <img src="/uv_azul.svg" alt="UV" className="h-7 w-auto" />
+                    <span className="font-semibold text-slate-700">
+                      Universidad de Valparaíso • Sistema de Toma de Ramos
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Dirección General de Pregrado • Mesa de Ayuda: (32) 250 7000 • contacto@uv.cl
+                  </p>
                 </div>
-              </div>
-            )}
-
-            {pasoActual === 'HORARIO_ARMADO' && <VistaHorarioArmado />}
-
-            {pasoActual === 'COMPROBANTE_OFICIAL' && <ComprobanteOficialInscripcion />}
-          </main>
-
-          {/* Pie Institucional de Escritorio */}
-          <footer className="bg-white border-t border-slate-200 mt-auto py-6 px-4 text-center text-xs text-slate-500 print:hidden">
-            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <img src="/uv_azul.svg" alt="UV" className="h-7 w-auto" />
-                <span className="font-semibold text-slate-700">
-                  Universidad de Valparaíso • Sistema de Toma de Ramos
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Dirección General de Pregrado • Mesa de Ayuda: (32) 250 7000 • contacto@uv.cl
-              </p>
-            </div>
-          </footer>
+              </footer>
+            </>
+          )}
         </div>
       )}
 

@@ -14,7 +14,13 @@ import {
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 
 export const InicioApptuiMovil: React.FC = () => {
-  const { establecerPasoActual, estaInscripcionCompletada, asignaturasInscritas, totalCreditosSCT } = usarTomaRamos();
+  const {
+    establecerPasoActual,
+    entrarAFilaVirtual,
+    estaInscripcionCompletada,
+    asignaturasInscritas,
+    totalCreditosSCT,
+  } = usarTomaRamos();
 
   return (
     <div className="p-4 space-y-4 animate-fadeIn text-slate-100">
@@ -83,7 +89,7 @@ export const InicioApptuiMovil: React.FC = () => {
           </p>
 
           <button
-            onClick={() => establecerPasoActual('INICIO_SESION_SSO')}
+            onClick={() => entrarAFilaVirtual()}
             className="w-full py-3 bg-[#31C4D7] hover:bg-[#28b2c4] text-slate-900 font-black rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
           >
             <span>Ingresar a Fila Virtual</span>

@@ -102,6 +102,7 @@ export type ModoVisualizacion = 'ESCRITORIO_WEB' | 'MOVIL_APPTUI' | 'LIBRE';
 
 export type PasoFlujoTomaRamos =
   | 'INICIO_PORTAL'
+  | 'PORTAL_ALUMNOS'
   | 'INICIO_SESION_SSO'
   | 'FILA_VIRTUAL'
   | 'SELECCION_RAMOS'

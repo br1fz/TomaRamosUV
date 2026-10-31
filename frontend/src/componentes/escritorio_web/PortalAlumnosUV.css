@@ -1,0 +1,348 @@
+/* ==========================================================================
+   PORTAL ACADÉMICO DE ALUMNOS UV - ESTILOS OFICIALES ANGULAR / PRIMENG
+   Universidad de Valparaíso - Dirección General de Tecnologías de la Información
+   ========================================================================== */
+
+.portal-alumnos-root {
+  background-color: #e9ecef;
+  min-height: 100vh;
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #495057;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --------------------------------------------------------------------------
+   TOOLBAR INSTITUCIONAL SUPERIOR (.main-toolbar)
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .main-toolbar {
+  background: #003c58 !important;
+  border-radius: 0;
+  border: none;
+  top: 0;
+  right: 0;
+  left: 0;
+  position: fixed;
+  z-index: 1030;
+  height: 52px;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.portal-alumnos-root .sitename {
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.portal-alumnos-root .button-header {
+  color: #ffffff;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  font-size: 1.1rem;
+}
+
+.portal-alumnos-root .button-header:hover {
+  background-color: #06717e !important;
+  color: #ffffff !important;
+}
+
+.portal-alumnos-root .mi-cuenta-foto {
+  cursor: pointer;
+  vertical-align: middle;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.portal-alumnos-root .mi-cuenta-foto:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 2px #06717e;
+}
+
+/* --------------------------------------------------------------------------
+   CONTENEDOR PRINCIPAL (.main-container)
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .main-container {
+  min-height: calc(100vh - 65px);
+  padding: 4.8rem 1rem 1.5rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media screen and (max-width: 768px) {
+  .portal-alumnos-root .main-container {
+    padding-top: 4.2rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   TARJETA GENÉRICA PRIMENG (.p-card)
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .p-card {
+  background: #ffffff;
+  color: #495057;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.portal-alumnos-root .p-card-body {
+  padding: 1.25rem;
+}
+
+.portal-alumnos-root .p-card-content {
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   MÓDULOS Y BOTONES INSTITUCIONALES (.modulo)
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .modulo {
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  min-height: 60px;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  transition: all 0.2s ease;
+  position: relative;
+  outline: none;
+}
+
+.portal-alumnos-root .modulo-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.portal-alumnos-root .modulo-button .icono {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portal-alumnos-root .modulo-button .icono img,
+.portal-alumnos-root .modulo-button .icono svg {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.portal-alumnos-root .modulo-button .nombre {
+  text-align: left;
+  font-size: 0.825rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: inherit;
+  flex: 1;
+}
+
+/* Módulos de advertencia / prioritarios (Amarillo institucional UV) */
+.portal-alumnos-root .modulo.p-button-warning {
+  background: #ffe494;
+  color: #8c6a04;
+  border: 1px solid #ffe494;
+}
+
+.portal-alumnos-root .modulo.p-button-warning:hover {
+  background: #ffd965;
+  color: #664d03;
+  border-color: #ffd965;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Módulos completados / exitosos (Verde institucional UV) */
+.portal-alumnos-root .modulo.p-button-success {
+  background: #b2ebcc;
+  color: #185433;
+  border: 1px solid #b2ebcc;
+}
+
+.portal-alumnos-root .modulo.p-button-success:hover {
+  background: #90e2b5;
+  color: #134228;
+  border-color: #90e2b5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Módulos estándar bordeados */
+.portal-alumnos-root .modulo.p-button-secondary.p-button-outlined {
+  background-color: #ffffff;
+  color: #495057;
+  border: 1px solid #ced4da;
+}
+
+.portal-alumnos-root .modulo.p-button-secondary.p-button-outlined:hover {
+  background-color: #f8f9fa;
+  color: #003c58;
+  border-color: #003c58;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.06);
+}
+
+/* Etiqueta PRIORITARIOS */
+.portal-alumnos-root .tag-modulos-prioritario {
+  background-color: #ffe494;
+  color: #8c6a04;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   FILTROS DE MÓDULOS (CHIPS DE BOTONES)
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .filtro-btn {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.portal-alumnos-root .filtro-btn.activo {
+  background-color: #003c58;
+  color: #ffffff;
+  border: 1px solid #003c58;
+}
+
+.portal-alumnos-root .filtro-btn.inactivo {
+  background-color: transparent;
+  color: #003c58;
+  border: 1px solid #003c58;
+}
+
+.portal-alumnos-root .filtro-btn.inactivo:hover {
+  background-color: rgba(0, 60, 88, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   BOTONES ENLACE PRINCIPAL (.button-enlace-principal)
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .button-enlace-principal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem 0.5rem;
+  background: #ffffff;
+  color: #003c58;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.815rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.portal-alumnos-root .button-enlace-principal:hover {
+  background: #f0f7fa;
+  border-color: #003c58;
+  color: #003c58;
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   FICHA ACADÉMICA Y TABLA
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .foto-usuario {
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 3px solid #e9ecef;
+}
+
+.portal-alumnos-root .table-bootstrap {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.825rem;
+}
+
+.portal-alumnos-root .table-bootstrap td {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.portal-alumnos-root .table-bootstrap tr:nth-child(odd) {
+  background-color: #f8f9fa;
+}
+
+/* --------------------------------------------------------------------------
+   ENLACES INFERIORES (.enlace)
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .enlace {
+  text-decoration: none;
+  color: #003c58;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.portal-alumnos-root .enlace:hover {
+  text-decoration: underline;
+  color: #06717e;
+}
+
+/* --------------------------------------------------------------------------
+   FOOTER INSTITUCIONAL (.footer)
+   -------------------------------------------------------------------------- */
+.portal-alumnos-root .footer {
+  color: #003c58;
+  font-size: 0.85rem;
+  text-align: center;
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.portal-alumnos-root .link-footer {
+  color: #003c58;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.portal-alumnos-root .link-footer:hover {
+  text-decoration: underline;
+  color: #06717e;
+}

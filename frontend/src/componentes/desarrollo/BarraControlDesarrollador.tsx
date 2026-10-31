@@ -23,8 +23,8 @@ export const BarraControlDesarrollador: React.FC = () => {
   } = usarTomaRamos();
 
   const pasosWireflow: { clave: PasoFlujoTomaRamos; etiqueta: string }[] = [
-    { clave: 'INICIO_PORTAL', etiqueta: '0. Inicio Portal/App' },
-    { clave: 'INICIO_SESION_SSO', etiqueta: '1. Login SSO' },
+    { clave: 'INICIO_PORTAL', etiqueta: '0. Login Portal UV' },
+    { clave: 'PORTAL_ALUMNOS', etiqueta: '1. Portal Académico' },
     { clave: 'FILA_VIRTUAL', etiqueta: '2. Fila Virtual' },
     { clave: 'SELECCION_RAMOS', etiqueta: '3. Toma de Ramos' },
     { clave: 'HORARIO_ARMADO', etiqueta: '4. Horario Armado' },

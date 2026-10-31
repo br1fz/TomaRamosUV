@@ -44,6 +44,7 @@ interface TipoContextoTomaRamos {
   // Métodos de control y acciones
   iniciarSesion: (correo: string, rut: string) => void;
   cerrarSesion: () => void;
+  entrarAFilaVirtual: () => void;
   configurarAlertaSonora: (habilitada: boolean) => void;
   probarAlertaSonora: () => void;
   seleccionarSeccion: (asignatura: Asignatura, seccion: SeccionAsignatura) => boolean;
@@ -179,6 +180,10 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
   const iniciarSesion = (_correo: string, rut: string) => {
     // Notificar a otras pestañas para bloquear concurrencia unitaria
     canalSesionUnica.notificarNuevoInicioSesion(rut);
+    establecerPasoActual('PORTAL_ALUMNOS');
+  };
+
+  const entrarAFilaVirtual = () => {
     establecerMetricasFila({
       ...METRICAS_INICIALES_FILA,
       tokenAcceso: 'TOK_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
@@ -368,6 +373,7 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
         cerrarCelebracionTurno,
         iniciarSesion,
         cerrarSesion,
+        entrarAFilaVirtual,
         configurarAlertaSonora,
         probarAlertaSonora,
         seleccionarSeccion,

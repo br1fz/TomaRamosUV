@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30">
+  <defs>
+    <linearGradient id="uvGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <!-- Background circular soft badge -->
+  <circle cx="24" cy="24" r="22" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+  <!-- Graduation cap base -->
+  <path d="M8 19L24 11L40 19L24 27L8 19Z" fill="#003C58"/>
+  <path d="M13 23V30C13 33.5 17.9 36 24 36C30.1 36 35 33.5 35 30V23L24 28.5L13 23Z" fill="#0284C7"/>
+  <!-- Tassel -->
+  <path d="M36 20.5V31" stroke="#D97706" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="36" cy="32" r="2" fill="#D97706"/>
+  <!-- Checkmark badge overlay -->
+  <circle cx="34" cy="34" r="9" fill="#10B981" stroke="#FFFFFF" stroke-width="1.5"/>
+  <path d="M30.5 34L33 36.5L37.5 31.5" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
