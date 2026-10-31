@@ -27,7 +27,7 @@ export const TarjetaFilaVirtualWeb: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
-                Fila Virtual Activa • WebSocket Conectado
+                Fila Virtual Activa
               </span>
             </div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
@@ -52,7 +52,7 @@ export const TarjetaFilaVirtualWeb: React.FC = () => {
         </div>
 
         {/* Cuadrícula de Métricas en Vivo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
           {/* Puesto en la Fila */}
           <div className="bg-gradient-to-br from-[#004A77] to-[#003352] text-white p-6 rounded-2xl shadow-lg relative overflow-hidden text-center md:text-left">
             <div className="absolute -right-4 -bottom-4 opacity-10">
@@ -64,24 +64,9 @@ export const TarjetaFilaVirtualWeb: React.FC = () => {
             <div className="text-5xl font-black tracking-tight my-1 text-white flex items-baseline justify-center md:justify-start gap-1">
               <span>#{metricasFila.posicionEnFila}</span>
             </div>
-            <span className="text-[11px] text-sky-200/90 font-medium">
-              Orden FIFO Estricto en Memoria
-            </span>
-          </div>
-
-          {/* Alumnos por Delante */}
-          <div className="bg-slate-50 border border-slate-200/80 p-6 rounded-2xl text-center md:text-left flex flex-col justify-between">
-            <div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Alumnos por Delante
-              </span>
-              <div className="text-4xl font-extrabold text-slate-800 my-1">
-                {metricasFila.alumnosPorDelante}
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-              <Users className="w-3.5 h-3.5 text-slate-400" />
-              <span>Tasa: ~15 alumnos / min</span>
+            <div className="flex items-center justify-center md:justify-start gap-1.5 text-[11px] text-sky-200/90 font-medium">
+              <Users className="w-3.5 h-3.5 text-sky-300" />
+              <span>Tasa promedio: ~15 alumnos / min</span>
             </div>
           </div>
 
@@ -95,19 +80,23 @@ export const TarjetaFilaVirtualWeb: React.FC = () => {
                 {formatearTiempoEspera(metricasFila.tiempoEstimadoEsperaSegundos)}
               </div>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 font-semibold">
+            <div className="flex items-center justify-center md:justify-start gap-1.5 text-[11px] text-emerald-600 font-semibold">
               <Clock className="w-3.5 h-3.5" />
               <span>Cálculo dinámico en vivo</span>
             </div>
           </div>
         </div>
 
-        {/* Barra de Progreso Animada */}
+        {/* Barra de Progreso hacia el Turno */}
         <div className="mb-8">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
             <span>Progreso hacia tu turno</span>
-            <span className="font-bold text-[#004A77] font-mono">
-              {metricasFila.porcentajeAvance}%
+            <span className="font-bold text-[#004A77] font-mono text-sm">
+              {metricasFila.alumnosPorDelante === 0
+                ? '¡Es tu turno!'
+                : metricasFila.alumnosPorDelante === 1
+                ? '1 persona por delante'
+                : `${metricasFila.alumnosPorDelante} personas por delante`}
             </span>
           </div>
           <div className="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-0.5 border border-slate-200">

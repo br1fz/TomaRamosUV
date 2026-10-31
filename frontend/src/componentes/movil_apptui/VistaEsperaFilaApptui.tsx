@@ -34,7 +34,7 @@ export const VistaEsperaFilaApptui: React.FC = () => {
 
         <h2 className="text-lg font-black text-white mt-1">Sala de Espera APPTUI</h2>
         <p className="text-[11px] text-slate-400">
-          Turno de inscripción asignado por orden de llegada (FIFO).
+          Turno de inscripción asignado por orden de llegada.
         </p>
       </div>
 
@@ -73,8 +73,12 @@ export const VistaEsperaFilaApptui: React.FC = () => {
         {/* Barra de Progreso */}
         <div className="mt-5">
           <div className="flex justify-between text-[11px] font-semibold text-slate-400 mb-1">
-            <span>Avance</span>
-            <span className="text-[#31C4D7] font-mono">{metricasFila.porcentajeAvance}%</span>
+            <span>Progreso en fila</span>
+            <span className="text-[#31C4D7] font-bold">
+              {metricasFila.alumnosPorDelante === 0
+                ? '¡Es tu turno!'
+                : `${metricasFila.alumnosPorDelante} por delante`}
+            </span>
           </div>
           <div className="w-full bg-[#14151A] h-2.5 rounded-full overflow-hidden border border-[#2D323E]">
             <div
