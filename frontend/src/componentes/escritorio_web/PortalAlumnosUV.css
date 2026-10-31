@@ -19,11 +19,9 @@
   background: #003c58 !important;
   border-radius: 0;
   border: none;
-  top: 0;
-  right: 0;
-  left: 0;
-  position: fixed;
-  z-index: 1030;
+  width: 100%;
+  position: relative;
+  z-index: 40;
   height: 52px;
   padding: 0 1.25rem;
   display: flex;
@@ -81,8 +79,8 @@
    CONTENEDOR PRINCIPAL (.main-container)
    -------------------------------------------------------------------------- */
 .portal-alumnos-root .main-container {
-  min-height: calc(100vh - 65px);
-  padding: 4.8rem 1rem 1.5rem;
+  min-height: calc(100vh - 120px);
+  padding: 1.25rem 1rem 1.5rem;
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
@@ -90,7 +88,7 @@
 
 @media screen and (max-width: 768px) {
   .portal-alumnos-root .main-container {
-    padding-top: 4.2rem;
+    padding-top: 1rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
@@ -346,3 +344,4 @@
   text-decoration: underline;
   color: #06717e;
 }
+

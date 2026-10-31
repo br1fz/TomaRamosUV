@@ -105,11 +105,11 @@ export const BarraControlDesarrollador: React.FC = () => {
 
           <button
             onClick={probarAlertaSonora}
-            title="Probar sonido festivo y amigable: '¡Uy! ¡Al fin me toca!'"
+            title="Probar sonido de alarma de turno disponible"
             className="px-2.5 py-1 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-950/70 border border-emerald-700/50 rounded-md font-bold flex items-center gap-1.5 transition-all"
           >
             <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">Sonido "¡Al fin me toca!"</span>
+            <span className="hidden sm:inline">Sonido Alarma</span>
           </button>
 
           <button
