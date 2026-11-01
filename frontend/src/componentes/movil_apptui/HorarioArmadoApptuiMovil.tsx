@@ -407,3 +407,4 @@ export const HorarioArmadoApptuiMovil: React.FC = () => {
     </div>
   );
 };
+
