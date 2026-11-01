@@ -10,7 +10,7 @@ import { NotificacionesApptuiMovil } from './NotificacionesApptuiMovil';
 import { VistaEsperaFilaApptui } from './VistaEsperaFilaApptui';
 import { InscripcionRamosApptui } from './InscripcionRamosApptui';
 import { VistaHorarioArmado } from '../comunes/VistaHorarioArmado';
-import { ComprobanteOficialInscripcion } from '../comunes/ComprobanteOficialInscripcion';
+import { ComprobanteApptuiMovil } from './ComprobanteApptuiMovil';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 import { Smartphone, Monitor, Clock } from 'lucide-react';
 
@@ -67,9 +67,9 @@ export const CarcasaTelefonoMovil: React.FC = () => {
       return <VistaHorarioArmado />;
     }
 
-    // 6. Comprobante Oficial con Código QR
+    // 6. Comprobante Oficial con Código QR Adaptado para Móvil
     if (pasoActual === 'COMPROBANTE_OFICIAL') {
-      return <ComprobanteOficialInscripcion />;
+      return <ComprobanteApptuiMovil />;
     }
 
     // 7. Navegación por pestañas del Home (PORTAL_ALUMNOS)
