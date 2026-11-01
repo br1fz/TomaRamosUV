@@ -1,10 +1,60 @@
-import React from 'react';
-import { FastForward, Wifi } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { FastForward, Wifi, Bell } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 import { InterruptorAlertaSonora } from '../comunes/InterruptorAlertaSonora';
 
 export const VistaEsperaFilaApptui: React.FC = () => {
-  const { metricasFila, adelantarFilaInstantaneamente } = usarTomaRamos();
+  const { metricasFila, adelantarFilaInstantaneamente, estudiante } = usarTomaRamos();
+  const [permisoNotif, setPermisoNotif] = useState<NotificationPermission>(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
+    }
+    return 'default';
+  });
+
+  // 1. Wake Lock API: mantener la pantalla del smartphone encendida mientras espera
+  useEffect(() => {
+    let candadoPantalla: { release: () => Promise<void> } | null = null;
+    if (typeof navigator !== 'undefined' && 'wakeLock' in navigator) {
+      (navigator as unknown as { wakeLock: { request: (tipo: string) => Promise<{ release: () => Promise<void> }> } }).wakeLock
+        .request('screen')
+        .then((lock) => {
+          candadoPantalla = lock;
+        })
+        .catch(() => {
+          // Ignorar si el usuario minimizó
+        });
+    }
+
+    return () => {
+      if (candadoPantalla) {
+        candadoPantalla.release().catch(() => {});
+      }
+    };
+  }, []);
+
+  // 2. Notificación push al llegar el turno
+  useEffect(() => {
+    if (metricasFila.posicionEnFila <= 1 && typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification('¡Uy! ¡Al fin me toca! - AppTUI UV', {
+            body: `Hola ${estudiante.nombre}, tu turno ha llegado. Tienes 10 minutos para inscribir asignaturas.`,
+            icon: '/uv_azul.svg',
+          });
+        } catch {
+          // Ignorar
+        }
+      }
+    }
+  }, [metricasFila.posicionEnFila, estudiante.nombre]);
+
+  const solicitarPermisoNotificaciones = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const permiso = await Notification.requestPermission();
+      setPermisoNotif(permiso);
+    }
+  };
 
   const formatearTiempoEspera = (segundos: number) => {
     if (segundos <= 0) return '< 10 seg';
@@ -91,6 +141,22 @@ export const VistaEsperaFilaApptui: React.FC = () => {
 
       {/* Interruptor de Alerta Sonora en Modo Oscuro */}
       <InterruptorAlertaSonora modoOscuro />
+
+      {/* Botón de Permiso Notificación Móvil */}
+      {permisoNotif !== 'granted' && (
+        <div className="bg-[#13262F] border border-[#31C4D7]/40 rounded-2xl p-3 flex items-center justify-between gap-2.5 text-xs shadow-sm">
+          <div className="flex items-center gap-2 text-slate-200 text-[11px]">
+            <Bell className="w-4 h-4 text-[#31C4D7] flex-shrink-0" />
+            <span>Avisarme con notificación push cuando llegue mi turno</span>
+          </div>
+          <button
+            onClick={solicitarPermisoNotificaciones}
+            className="px-2.5 py-1 bg-[#31C4D7] text-slate-950 font-bold rounded-lg text-[10px] whitespace-nowrap active:scale-95"
+          >
+            Activar
+          </button>
+        </div>
+      )}
 
       {/* Garantía de Red y Reconexión Automática */}
       <div className="bg-[#20232A] border border-[#2D323E] rounded-2xl p-4 text-xs text-slate-300 space-y-2">

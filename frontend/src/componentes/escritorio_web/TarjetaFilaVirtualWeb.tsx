@@ -1,10 +1,60 @@
-import React from 'react';
-import { Users, Clock, ShieldCheck, Wifi, FastForward } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Users, Clock, ShieldCheck, Wifi, FastForward, Bell } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 import { InterruptorAlertaSonora } from '../comunes/InterruptorAlertaSonora';
 
 export const TarjetaFilaVirtualWeb: React.FC = () => {
   const { metricasFila, adelantarFilaInstantaneamente, estudiante } = usarTomaRamos();
+  const [permisoNotif, setPermisoNotif] = useState<NotificationPermission>(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
+    }
+    return 'default';
+  });
+
+  // 1. Mantener pantalla encendida (Wake Lock API) para evitar suspensión en móviles/laptops
+  useEffect(() => {
+    let candadoPantalla: { release: () => Promise<void> } | null = null;
+    if (typeof navigator !== 'undefined' && 'wakeLock' in navigator) {
+      (navigator as unknown as { wakeLock: { request: (tipo: string) => Promise<{ release: () => Promise<void> }> } }).wakeLock
+        .request('screen')
+        .then((lock) => {
+          candadoPantalla = lock;
+        })
+        .catch(() => {
+          // Ignorar si el usuario cambió de pestaña o la política del navegador lo restringe
+        });
+    }
+
+    return () => {
+      if (candadoPantalla) {
+        candadoPantalla.release().catch(() => {});
+      }
+    };
+  }, []);
+
+  // 2. Notificación push del navegador al llegar el turno
+  useEffect(() => {
+    if (metricasFila.posicionEnFila <= 1 && typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification('¡Uy! ¡Al fin me toca! - Toma de Ramos UV', {
+            body: `Hola ${estudiante.nombre}, tu turno ha llegado. Tienes 10 minutos protegidos para seleccionar tus asignaturas.`,
+            icon: '/uv_azul.svg',
+          });
+        } catch {
+          // Ignorar fallas silenciosas de notificación
+        }
+      }
+    }
+  }, [metricasFila.posicionEnFila, estudiante.nombre]);
+
+  const solicitarPermisoNotificaciones = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const permiso = await Notification.requestPermission();
+      setPermisoNotif(permiso);
+    }
+  };
 
   const formatearTiempoEspera = (segundos: number) => {
     if (segundos <= 0) return 'Menos de 10 segundos';
@@ -109,9 +159,24 @@ export const TarjetaFilaVirtualWeb: React.FC = () => {
           </div>
         </div>
 
-        {/* Interruptor de Alerta Sonora */}
-        <div className="mb-6">
+        {/* Interruptor de Alerta Sonora y Notificación Push */}
+        <div className="mb-6 space-y-3">
           <InterruptorAlertaSonora />
+
+          {permisoNotif !== 'granted' && (
+            <div className="bg-sky-50 border border-sky-200 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-sky-900">
+                <Bell className="w-4 h-4 text-[#004A77] flex-shrink-0" />
+                <span>¿Deseas recibir un aviso en pantalla cuando sea tu turno aunque cambies de pestaña?</span>
+              </div>
+              <button
+                onClick={solicitarPermisoNotificaciones}
+                className="px-3.5 py-1.5 bg-[#004A77] hover:bg-[#003859] text-white font-bold rounded-xl whitespace-nowrap active:scale-95 transition-all text-xs self-end sm:self-center shadow-xs"
+              >
+                Activar Notificación
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Garantías de Transparencia y Reducción de Ansiedad */}

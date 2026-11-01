@@ -1,11 +1,20 @@
 import React from 'react';
-import { AlertCircle, Clock, Calendar, Check } from 'lucide-react';
+import { AlertCircle, Clock, Calendar, Check, Sparkles, CheckCircle2 } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
+import { detectarTopeHorario } from '../../utilidades/detectorTopesHorarios';
 
 export const ModalTopeHorario: React.FC = () => {
-  const { conflictoActivo, descartarConflicto } = usarTomaRamos();
+  const { conflictoActivo, descartarConflicto, seleccionarSeccion, asignaturasInscritas } = usarTomaRamos();
 
   if (!conflictoActivo) return null;
+
+  // Buscar si la asignatura intentada tiene otra sección sin colisión y con cupos disponibles
+  const seccionAlternativa = conflictoActivo.asignaturaIntentada.secciones.find(
+    (sec) =>
+      sec.id !== conflictoActivo.seccionIntentada.id &&
+      sec.cuposDisponibles > 0 &&
+      !detectarTopeHorario(conflictoActivo.asignaturaIntentada, sec, asignaturasInscritas)
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
@@ -61,22 +70,49 @@ export const ModalTopeHorario: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 mb-6 flex items-start gap-2">
-            <span className="text-emerald-600 font-bold">✓</span>
-            <span>
-              <strong>Acción preventiva:</strong> La segunda asignatura fue desmarcada
-              automáticamente para resguardar la validez de tu inscripción. Por favor selecciona
-              otra sección alternativa que no genere conflicto en tu horario semanal.
-            </span>
-          </div>
+          {/* Sugerencia Inteligente de Sección Alternativa (Smart Resolution) */}
+          {seccionAlternativa ? (
+            <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 mb-4 shadow-sm animate-fadeIn">
+              <div className="flex items-center gap-2 text-emerald-900 font-extrabold text-xs mb-1">
+                <Sparkles className="w-4 h-4 text-emerald-600 animate-spin" style={{ animationDuration: '6s' }} />
+                <span>Alternativa Inteligente UV Disponible</span>
+              </div>
+              <p className="text-xs text-slate-700 leading-snug mb-3">
+                La <strong>Sección {seccionAlternativa.numeroSeccion}</strong> ({seccionAlternativa.profesor}) cuenta con <strong>{seccionAlternativa.cuposDisponibles} cupos libres</strong> y calza perfectamente en tu horario sin provocar choques.
+              </p>
+              <button
+                onClick={() => {
+                  seleccionarSeccion(conflictoActivo.asignaturaIntentada, seccionAlternativa);
+                  descartarConflicto();
+                }}
+                className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Inscribir Sección {seccionAlternativa.numeroSeccion} con 1 Clic</span>
+              </button>
+            </div>
+          ) : (
+            <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 mb-6 flex items-start gap-2">
+              <span className="text-emerald-600 font-bold">✓</span>
+              <span>
+                <strong>Acción preventiva:</strong> La segunda asignatura fue desmarcada
+                automáticamente para resguardar la validez de tu inscripción. Por favor selecciona
+                otra sección alternativa que no genere conflicto en tu horario semanal.
+              </span>
+            </div>
+          )}
 
-          {/* Botón de Acción */}
+          {/* Botón de Acción Principal */}
           <button
             onClick={descartarConflicto}
-            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+            className={`w-full py-3 px-4 font-semibold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 ${
+              seccionAlternativa
+                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs'
+                : 'bg-slate-900 hover:bg-slate-800 text-white'
+            }`}
           >
             <Check className="w-4 h-4" />
-            Entendido, elegir otra sección
+            <span>{seccionAlternativa ? 'Descartar y revisar manualmente' : 'Entendido, elegir otra sección'}</span>
           </button>
         </div>
       </div>

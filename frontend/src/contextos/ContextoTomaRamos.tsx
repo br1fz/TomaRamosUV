@@ -22,6 +22,12 @@ import {
 } from '../utilidades/sintetizadorAudioUV';
 import { canalSesionUnica } from '../utilidades/canalTransmisionSesion';
 
+export interface InfoAlertaCurricular {
+  tipo: 'LIMITE_CREDITOS' | 'SIN_ASIGNATURAS' | 'SESION_EXPIRADA' | 'INFO';
+  titulo: string;
+  mensaje: string;
+}
+
 interface TipoContextoTomaRamos {
   estudiante: Estudiante;
   modoVisualizacion: ModoVisualizacion;
@@ -41,6 +47,8 @@ interface TipoContextoTomaRamos {
   estaInscripcionCompletada: boolean;
   mostrarCelebracionTurno: boolean;
   cerrarCelebracionTurno: () => void;
+  alertaCurricular: InfoAlertaCurricular | null;
+  descartarAlertaCurricular: () => void;
   // Métodos de control y acciones
   iniciarSesion: (correo: string, rut: string) => void;
   cerrarSesion: () => void;
@@ -70,18 +78,55 @@ const METRICAS_INICIALES_FILA: MetricasFilaVirtual = {
   segundosRestantesTransaccion: 600, // 10:00 minutos protegidos
 };
 
+const CLAVE_ALMACENAMIENTO_SESION = 'toma_ramos_uv_estado_sesion_v1';
+
+interface EstadoPersistente {
+  pasoActual: PasoFlujoTomaRamos;
+  metricasFila: MetricasFilaVirtual;
+  asignaturasInscritas: AsignaturaInscrita[];
+  asignaturasEnListaEspera: Record<string, number>;
+  comprobanteOficial: ComprobanteOficialInscripcion | null;
+  estaInscripcionCompletada: boolean;
+}
+
+const cargarEstadoPersistido = (): EstadoPersistente | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(CLAVE_ALMACENAMIENTO_SESION);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    // ignorar error de lectura
+  }
+  return null;
+};
+
 export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const estadoPersistido = cargarEstadoPersistido();
+
   const [estudiante] = useState<Estudiante>(ESTUDIANTE_INICIAL_PRUEBA);
   const [modoVisualizacion, establecerModoVisualizacion] = useState<ModoVisualizacion>('ESCRITORIO_WEB');
-  const [pasoActual, establecerPasoActual] = useState<PasoFlujoTomaRamos>('INICIO_PORTAL');
-  const [metricasFila, establecerMetricasFila] = useState<MetricasFilaVirtual>(METRICAS_INICIALES_FILA);
+  const [pasoActual, establecerPasoActual] = useState<PasoFlujoTomaRamos>(
+    estadoPersistido?.pasoActual || 'INICIO_PORTAL'
+  );
+  const [metricasFila, establecerMetricasFila] = useState<MetricasFilaVirtual>(
+    estadoPersistido?.metricasFila || METRICAS_INICIALES_FILA
+  );
   const [asignaturas, establecerAsignaturas] = useState<Asignatura[]>(ASIGNATURAS_INICIALES_5TO_SEMESTRE);
-  const [asignaturasInscritas, establecerAsignaturasInscritas] = useState<AsignaturaInscrita[]>([]);
+  const [asignaturasInscritas, establecerAsignaturasInscritas] = useState<AsignaturaInscrita[]>(
+    estadoPersistido?.asignaturasInscritas || []
+  );
   const [conflictoActivo, establecerConflictoActivo] = useState<ConflictoTopeHorario | null>(null);
   const [sesionTransferida, establecerSesionTransferida] = useState<boolean>(false);
-  const [asignaturasEnListaEspera, establecerAsignaturasEnListaEspera] = useState<Record<string, number>>({});
-  const [comprobanteOficial, establecerComprobanteOficial] = useState<ComprobanteOficialInscripcion | null>(null);
-  const [estaInscripcionCompletada, establecerEstaInscripcionCompletada] = useState<boolean>(false);
+  const [asignaturasEnListaEspera, establecerAsignaturasEnListaEspera] = useState<Record<string, number>>(
+    estadoPersistido?.asignaturasEnListaEspera || {}
+  );
+  const [comprobanteOficial, establecerComprobanteOficial] = useState<ComprobanteOficialInscripcion | null>(
+    estadoPersistido?.comprobanteOficial || null
+  );
+  const [estaInscripcionCompletada, establecerEstaInscripcionCompletada] = useState<boolean>(
+    estadoPersistido?.estaInscripcionCompletada || false
+  );
+  const [alertaCurricular, establecerAlertaCurricular] = useState<InfoAlertaCurricular | null>(null);
   const [mostrarCelebracionTurno, establecerMostrarCelebracionTurno] = useState<boolean>(false);
 
   // Multiplicador de velocidad de avance para la simulación
@@ -161,6 +206,12 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
       establecerMetricasFila((anterior) => {
         if (anterior.segundosRestantesTransaccion <= 1) {
           clearInterval(temporizadorTransaccion);
+          establecerAlertaCurricular({
+            tipo: 'SESION_EXPIRADA',
+            titulo: 'Tiempo de Reserva Agotado (10:00 min)',
+            mensaje:
+              'Tu ventana protegida de 10 minutos para tomar ramos ha concluido. Para garantizar la equidad de cupos con los demás estudiantes, tus vacantes temporales han sido liberadas.',
+          });
           return {
             ...anterior,
             segundosRestantesTransaccion: 0,
@@ -176,6 +227,30 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
 
     return () => clearInterval(temporizadorTransaccion);
   }, [pasoActual, metricasFila.estado]);
+
+  // Sincronizar estado en sessionStorage para resistir refrescos accidentales (F5)
+  useEffect(() => {
+    try {
+      const aGuardar: EstadoPersistente = {
+        pasoActual,
+        metricasFila,
+        asignaturasInscritas,
+        asignaturasEnListaEspera,
+        comprobanteOficial,
+        estaInscripcionCompletada,
+      };
+      sessionStorage.setItem(CLAVE_ALMACENAMIENTO_SESION, JSON.stringify(aGuardar));
+    } catch {
+      // Ignorar si storage no está disponible
+    }
+  }, [
+    pasoActual,
+    metricasFila,
+    asignaturasInscritas,
+    asignaturasEnListaEspera,
+    comprobanteOficial,
+    estaInscripcionCompletada,
+  ]);
 
   const iniciarSesion = (_correo: string, rut: string) => {
     // Notificar a otras pestañas para bloquear concurrencia unitaria
@@ -193,11 +268,17 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const cerrarSesion = () => {
+    try {
+      sessionStorage.removeItem(CLAVE_ALMACENAMIENTO_SESION);
+    } catch {
+      // Ignorar
+    }
     establecerPasoActual('INICIO_PORTAL');
     establecerAsignaturasInscritas([]);
     establecerComprobanteOficial(null);
     establecerEstaInscripcionCompletada(false);
     establecerMostrarCelebracionTurno(false);
+    establecerAlertaCurricular(null);
     establecerMetricasFila(METRICAS_INICIALES_FILA);
     establecerSesionTransferida(false);
   };
@@ -236,7 +317,11 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
     const creditosProyectados = totalCreditosSCT - creditosPrevios + asignatura.creditosSCT;
 
     if (creditosProyectados > 30) {
-      alert('Ha superado el límite curricular semestral de 30 créditos SCT.');
+      establecerAlertaCurricular({
+        tipo: 'LIMITE_CREDITOS',
+        titulo: 'Límite Curricular Excedido',
+        mensaje: `La asignatura ${asignatura.codigo} (${asignatura.creditosSCT} SCT) supera el límite máximo permitido de 30 créditos SCT semestrales. Tu carga total proyectada sería de ${creditosProyectados} SCT.`,
+      });
       return false;
     }
 
@@ -264,7 +349,12 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const confirmarInscripcionCurricular = (): boolean => {
     if (asignaturasInscritas.length === 0) {
-      alert('Debe inscribir al menos una asignatura antes de confirmar.');
+      establecerAlertaCurricular({
+        tipo: 'SIN_ASIGNATURAS',
+        titulo: 'Sin Asignaturas Seleccionadas',
+        mensaje:
+          'Debes seleccionar e inscribir al menos una asignatura en tu horario antes de confirmar y emitir tu comprobante oficial UV.',
+      });
       return false;
     }
 
@@ -337,7 +427,16 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
     establecerSesionTransferida(false);
   };
 
+  const descartarAlertaCurricular = () => {
+    establecerAlertaCurricular(null);
+  };
+
   const reiniciarSimulacion = () => {
+    try {
+      sessionStorage.removeItem(CLAVE_ALMACENAMIENTO_SESION);
+    } catch {
+      // Ignorar
+    }
     establecerAsignaturas(ASIGNATURAS_INICIALES_5TO_SEMESTRE);
     establecerAsignaturasInscritas([]);
     establecerConflictoActivo(null);
@@ -346,6 +445,7 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
     establecerComprobanteOficial(null);
     establecerEstaInscripcionCompletada(false);
     establecerMostrarCelebracionTurno(false);
+    establecerAlertaCurricular(null);
     establecerMetricasFila(METRICAS_INICIALES_FILA);
     establecerPasoActual('INICIO_PORTAL');
   };
@@ -371,6 +471,8 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
         estaInscripcionCompletada,
         mostrarCelebracionTurno,
         cerrarCelebracionTurno,
+        alertaCurricular,
+        descartarAlertaCurricular,
         iniciarSesion,
         cerrarSesion,
         entrarAFilaVirtual,
@@ -390,10 +492,12 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 };
 
-export const usarTomaRamos = () => {
+export function useTomaRamos() {
   const contexto = useContext(ContextoTomaRamos);
   if (!contexto) {
-    throw new Error('usarTomaRamos debe ser utilizado dentro de un ProveedorTomaRamos');
+    throw new Error('useTomaRamos debe ser utilizado dentro de un ProveedorTomaRamos');
   }
   return contexto;
-};
+}
+
+export const usarTomaRamos = useTomaRamos;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import {
   CheckCircle2,
@@ -21,9 +21,10 @@ export const ComprobanteApptuiMovil: React.FC = () => {
 
   // Generar datos para el comprobante (usar el oficial o fallback de simulación si no se ha confirmado aún)
   const folio = comprobanteOficial?.codigoVerificacion || 'UV-8F92A1-2026';
-  const fechaConfirmacion =
-    comprobanteOficial?.fechaHoraConfirmacion ||
-    new Date().toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'short' });
+  const [fechaActualDefecto] = useState(() =>
+    new Date().toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'short' })
+  );
+  const fechaConfirmacion = comprobanteOficial?.fechaHoraConfirmacion || fechaActualDefecto;
   const firmaSHA =
     comprobanteOficial?.firmaDigitalSHA256 ||
     'a7f4c93e1b02847d95c21e0384f9a12c8e7456d90a123f4b5c6d7e8f9a0b1c2d';

@@ -1,15 +1,66 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
-import { Printer, CheckCircle2, ShieldCheck, ArrowLeft, Calendar, User, FileText } from 'lucide-react';
+import { Printer, CheckCircle2, ShieldCheck, ArrowLeft, Calendar, User, FileText, AlertCircle } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
+import { ASIGNATURAS_INICIALES_5TO_SEMESTRE } from '../../datos';
+import type { ComprobanteOficialInscripcion as ComprobanteTipo } from '../../tipos';
 
 export const ComprobanteOficialInscripcion: React.FC = () => {
-  const { comprobanteOficial, establecerPasoActual } = usarTomaRamos();
+  const {
+    comprobanteOficial,
+    establecerPasoActual,
+    estudiante,
+    asignaturasInscritas,
+    totalCreditosSCT,
+  } = usarTomaRamos();
   const lienzoQRRef = useRef<HTMLCanvasElement | null>(null);
 
+  const listaAsignaturas = useMemo(() => {
+    if (comprobanteOficial?.asignaturasInscritas) {
+      return comprobanteOficial.asignaturasInscritas;
+    }
+    if (asignaturasInscritas.length > 0) {
+      return asignaturasInscritas;
+    }
+    return ASIGNATURAS_INICIALES_5TO_SEMESTRE.map((asig) => ({
+      asignatura: asig,
+      seccion: asig.secciones[0],
+    }));
+  }, [comprobanteOficial?.asignaturasInscritas, asignaturasInscritas]);
+
+  const totalCreditos = useMemo(() => {
+    if (comprobanteOficial?.totalCreditosSCT !== undefined) {
+      return comprobanteOficial.totalCreditosSCT;
+    }
+    if (asignaturasInscritas.length > 0) {
+      return totalCreditosSCT;
+    }
+    return listaAsignaturas.reduce((acc, curr) => acc + curr.asignatura.creditosSCT, 0);
+  }, [comprobanteOficial?.totalCreditosSCT, asignaturasInscritas.length, totalCreditosSCT, listaAsignaturas]);
+
+  const [fechaDefecto] = useState(() =>
+    new Date().toLocaleString('es-CL', {
+      dateStyle: 'full',
+      timeStyle: 'medium',
+    })
+  );
+
+  const comprobanteEfectivo: ComprobanteTipo = useMemo(() => {
+    if (comprobanteOficial) return comprobanteOficial;
+    return {
+      id: 'COMPROBANTE-PREVIEW',
+      codigoVerificacion: 'UV-2026-ICI-5125-DEMO8F92',
+      estudiante,
+      asignaturasInscritas: listaAsignaturas,
+      totalCreditosSCT: totalCreditos,
+      fechaHoraConfirmacion: fechaDefecto,
+      firmaDigitalSHA256: 'SHA256:8f4c93e1b02847d95c21e0384f9a12c8e7456d90a123f4b5c6d7e8f9a0b1c2d3',
+    };
+  }, [comprobanteOficial, estudiante, listaAsignaturas, totalCreditos, fechaDefecto]);
+
   useEffect(() => {
-    if (comprobanteOficial && lienzoQRRef.current) {
-      const datosQR = `https://portal.uv.cl/validar?codigo=${comprobanteOficial.codigoVerificacion}&rut=${comprobanteOficial.estudiante.rut}&creditos=${comprobanteOficial.totalCreditosSCT}&semestre=2026-1`;
+    if (lienzoQRRef.current) {
+      const datosQR = `https://portal.uv.cl/validar?codigo=${comprobanteEfectivo.codigoVerificacion}&rut=${comprobanteEfectivo.estudiante.rut}&creditos=${comprobanteEfectivo.totalCreditosSCT}&semestre=2026-1`;
       QRCode.toCanvas(lienzoQRRef.current, datosQR, {
         width: 140,
         margin: 1,
@@ -19,9 +70,7 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
         },
       }).catch((error) => console.error('Error al generar código QR:', error));
     }
-  }, [comprobanteOficial]);
-
-  if (!comprobanteOficial) return null;
+  }, [comprobanteEfectivo]);
 
   const manejarImpresion = () => {
     window.print();
@@ -49,6 +98,27 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Banner Informativo si es modo vista previa sin confirmar */}
+      {!comprobanteOficial && (
+        <div className="print:hidden mb-6 bg-sky-50 border border-sky-200 text-sky-950 px-5 py-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-5 h-5 text-[#004A77] flex-shrink-0" />
+            <div className="text-xs">
+              <strong className="font-bold text-[#004A77] block sm:inline mr-1">
+                Modo Demostración / Vista Previa:
+              </strong>
+              Visualizando simulación de carga con asignaciones oficiales. Para registrar tu inscripción final y generar un folio certificado permanente, presiona "Confirmar Inscripción".
+            </div>
+          </div>
+          <button
+            onClick={() => establecerPasoActual('SELECCION_RAMOS')}
+            className="px-3.5 py-1.5 bg-[#004A77] hover:bg-[#003859] text-white text-xs font-bold rounded-xl whitespace-nowrap active:scale-95 transition-all self-end sm:self-center"
+          >
+            Ir a Selección
+          </button>
+        </div>
+      )}
 
       {/* Documento Oficial Imprimible */}
       <div
@@ -81,10 +151,10 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
             <div className="text-right sm:text-right">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-full text-xs font-bold uppercase tracking-wider mb-1">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                Inscripción Confirmada
+                {comprobanteOficial ? 'Inscripción Confirmada' : 'Certificado Válido'}
               </span>
               <p className="text-[11px] text-slate-500 font-mono">
-                Folio: <strong>{comprobanteOficial.codigoVerificacion}</strong>
+                Folio: <strong>{comprobanteEfectivo.codigoVerificacion}</strong>
               </p>
             </div>
           </div>
@@ -107,16 +177,16 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
                 <User className="w-4 h-4 text-[#004A77]" />
                 <span className="text-slate-500">Estudiante:</span>
                 <strong className="text-slate-900 font-bold text-sm">
-                  {comprobanteOficial.estudiante.nombre}
+                  {comprobanteEfectivo.estudiante.nombre}
                 </strong>
               </div>
               <div className="flex items-center gap-2 pl-6">
                 <span className="text-slate-500">RUN:</span>
-                <strong className="text-slate-800 font-mono">{comprobanteOficial.estudiante.rut}</strong>
+                <strong className="text-slate-800 font-mono">{comprobanteEfectivo.estudiante.rut}</strong>
               </div>
               <div className="flex items-center gap-2 pl-6">
                 <span className="text-slate-500">Correo Institucional:</span>
-                <span className="text-slate-800">{comprobanteOficial.estudiante.correo}</span>
+                <span className="text-slate-800">{comprobanteEfectivo.estudiante.correo}</span>
               </div>
             </div>
 
@@ -124,19 +194,19 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#004A77]" />
                 <span className="text-slate-500">Carrera:</span>
-                <strong className="text-slate-900">{comprobanteOficial.estudiante.carrera}</strong>
+                <strong className="text-slate-900">{comprobanteEfectivo.estudiante.carrera}</strong>
               </div>
               <div className="flex items-center gap-2 pl-6">
                 <span className="text-slate-500">Plan Curricular:</span>
                 <span className="text-slate-800 font-medium">
-                  {comprobanteOficial.estudiante.planCurricular}
+                  {comprobanteEfectivo.estudiante.planCurricular}
                 </span>
               </div>
               <div className="flex items-center gap-2 pl-6">
                 <Calendar className="w-4 h-4 text-slate-400" />
                 <span className="text-slate-500">Fecha y Hora de Confirmación:</span>
                 <span className="text-slate-800 font-mono">
-                  {comprobanteOficial.fechaHoraConfirmacion}
+                  {comprobanteEfectivo.fechaHoraConfirmacion}
                 </span>
               </div>
             </div>
@@ -157,7 +227,7 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {comprobanteOficial.asignaturasInscritas.map((item, indice) => (
+              {comprobanteEfectivo.asignaturasInscritas.map((item, indice) => (
                 <tr key={item.asignatura.codigo} className={indice % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
                   <td className="py-3 px-3 font-mono font-bold text-[#004A77]">
                     {item.asignatura.codigo}
@@ -208,7 +278,7 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
           <div className="text-right">
             <span className="text-xs text-slate-600 uppercase font-semibold">Total Créditos SCT:</span>
             <div className="text-xl font-extrabold text-[#004A77]">
-              {comprobanteOficial.totalCreditosSCT} <span className="text-xs font-normal text-slate-500">/ 30 SCT</span>
+              {comprobanteEfectivo.totalCreditosSCT} <span className="text-xs font-normal text-slate-500">/ 30 SCT</span>
             </div>
           </div>
         </div>
@@ -229,7 +299,7 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
               .
             </p>
             <p className="font-mono text-[10px] text-slate-400 break-all pt-1">
-              Firma Digital SHA-256: {comprobanteOficial.firmaDigitalSHA256}
+              Firma Digital SHA-256: {comprobanteEfectivo.firmaDigitalSHA256}
             </p>
           </div>
 

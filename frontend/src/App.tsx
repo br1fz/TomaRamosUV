@@ -15,6 +15,7 @@ import { ComprobanteOficialInscripcion } from './componentes/comunes/Comprobante
 import { CelebracionLlegadaTurno } from './componentes/comunes/CelebracionLlegadaTurno';
 import { ModalSesionDuplicada } from './componentes/comunes/ModalSesionDuplicada';
 import { ModalTopeHorario } from './componentes/comunes/ModalTopeHorario';
+import { ModalAlertaCurricular } from './componentes/comunes/ModalAlertaCurricular';
 
 const ContenidoPrincipalAplicacion: React.FC = () => {
   const { modoVisualizacion, pasoActual, mostrarCelebracionTurno, cerrarCelebracionTurno } = usarTomaRamos();
@@ -94,6 +95,7 @@ const ContenidoPrincipalAplicacion: React.FC = () => {
       {/* Modales Globales Compartidos */}
       <ModalSesionDuplicada />
       <ModalTopeHorario />
+      <ModalAlertaCurricular />
     </div>
   );
 };

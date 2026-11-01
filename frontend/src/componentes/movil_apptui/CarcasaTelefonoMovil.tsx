@@ -137,8 +137,12 @@ export const CarcasaTelefonoMovil: React.FC = () => {
         {renderizarCuerpo()}
       </main>
 
-      {/* Barra de pestañas inferior de APPTUI */}
-      {pasoActual !== 'INICIO_PORTAL' && pasoActual !== 'INICIO_SESION_SSO' && !perfilAbierto && (
+      {/* Barra de pestañas inferior de APPTUI (oculta durante la toma de ramos y fila virtual para evitar fugas involuntarias) */}
+      {pasoActual !== 'INICIO_PORTAL' &&
+        pasoActual !== 'INICIO_SESION_SSO' &&
+        pasoActual !== 'SELECCION_RAMOS' &&
+        pasoActual !== 'FILA_VIRTUAL' &&
+        !perfilAbierto && (
         <BarraNavegacionInferiorApptui
           pestanaActiva={
             pasoActual === 'HORARIO_ARMADO'

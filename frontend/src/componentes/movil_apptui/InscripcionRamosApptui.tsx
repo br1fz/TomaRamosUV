@@ -62,7 +62,7 @@ export const InscripcionRamosApptui: React.FC = () => {
   });
 
   return (
-    <div className="pb-32 animate-fadeIn text-slate-100 select-none">
+    <div className="pb-6 animate-fadeIn text-slate-100 select-none">
       {/* Píldoras de Navegación Tipo Ionic Segment */}
       <div className="p-3 pb-1">
         <div className="grid grid-cols-2 gap-1 bg-[#14151A] p-1 rounded-2xl border border-[#2D323E]">
@@ -421,8 +421,8 @@ export const InscripcionRamosApptui: React.FC = () => {
         </div>
       )}
 
-      {/* Barra Inferior Fija para Confirmar Inscripción */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#14151A]/95 backdrop-blur-md border-t border-[#2D323E] p-3 z-30 flex items-center justify-between gap-3 max-w-[390px] mx-auto shadow-2xl">
+      {/* Barra Inferior Adherida (Sticky) para Confirmar Inscripción */}
+      <div className="sticky bottom-0 left-0 right-0 bg-[#14151A]/95 backdrop-blur-md border-t border-[#2D323E] p-3 z-30 flex items-center justify-between gap-3 shadow-2xl">
         <div>
           <span className="text-[10px] text-slate-400 block font-bold uppercase">
             Total Créditos:
