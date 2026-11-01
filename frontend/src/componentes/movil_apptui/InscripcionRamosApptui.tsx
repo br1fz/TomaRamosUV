@@ -8,10 +8,14 @@ import {
   BookOpen,
   MapPin,
   CheckCircle2,
+  Search,
+  ChevronDown,
+  Info,
+  Trash2,
 } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 import { BLOQUES_HORARIOS_OFICIALES, DIAS_DE_LA_SEMANA } from '../../datos';
-import type { DiaSemana } from '../../tipos';
+import type { DiaSemana, Asignatura } from '../../tipos';
 
 export const InscripcionRamosApptui: React.FC = () => {
   const {
@@ -24,10 +28,21 @@ export const InscripcionRamosApptui: React.FC = () => {
     confirmarInscripcionCurricular,
     totalCreditosSCT,
     metricasFila,
+    establecerPasoActual,
   } = usarTomaRamos();
 
   const [pestanaActiva, establecerPestanaActiva] = useState<'asignaturas' | 'horario'>('asignaturas');
   const [diaSeleccionado, establecerDiaSeleccionado] = useState<DiaSemana>('Lunes');
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroSemestre, setFiltroSemestre] = useState<'TODAS' | '5' | 'PLAN_COMUN'>('TODAS');
+  const [acordeonAbierto, setAcordeonAbierto] = useState<Record<string, boolean>>({
+    'CIN 311': true,
+    'FIS 311': true,
+  });
+
+  const alternarAcordeon = (codigo: string) => {
+    setAcordeonAbierto((prev) => ({ ...prev, [codigo]: !prev[codigo] }));
+  };
 
   const formatearCuentaRegresiva = (segundos: number) => {
     const minutos = Math.floor(segundos / 60);
@@ -41,39 +56,53 @@ export const InscripcionRamosApptui: React.FC = () => {
     );
   };
 
+  // Filtrado reactivo de asignaturas
+  const asignaturasFiltradas = asignaturas.filter((asig: Asignatura) => {
+    const coincideTexto =
+      asig.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      asig.codigo.toLowerCase().includes(busqueda.toLowerCase());
+
+    if (!coincideTexto) return false;
+    if (filtroSemestre === '5') return asig.semestre === 5;
+    if (filtroSemestre === 'PLAN_COMUN') return asig.codigo.startsWith('MAT') || asig.codigo.startsWith('FIS');
+    return true;
+  });
+
   return (
-    <div className="pb-24 animate-fadeIn text-slate-100">
-      {/* Banner de Cuenta Regresiva de Transacción */}
-      <div className="bg-[#13262F] border-b border-[#31C4D7]/30 px-4 py-2.5 flex items-center justify-between text-xs sticky top-14 z-20">
+    <div className="pb-32 animate-fadeIn text-slate-100 select-none">
+      {/* Barra de Cuenta Regresiva de Transacción (10 minutos atómicos) */}
+      <div className="bg-[#13262F] border-b border-[#31C4D7]/30 px-4 py-2 flex items-center justify-between text-xs sticky top-0 z-20 shadow-md">
         <div className="flex items-center gap-1.5 text-[#31C4D7] font-bold">
-          <Clock className="w-4 h-4 animate-spin" style={{ animationDuration: '6s' }} />
+          <Clock className="w-4 h-4 animate-spin text-[#31C4D7]" style={{ animationDuration: '6s' }} />
           <span>Tiempo de Reserva:</span>
         </div>
-        <span className="font-mono font-black text-sm text-[#31C4D7]">
-          {formatearCuentaRegresiva(metricasFila.segundosRestantesTransaccion)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono font-black text-sm text-[#31C4D7] bg-[#0c2027] px-2 py-0.5 rounded-lg border border-[#31C4D7]/30">
+            {formatearCuentaRegresiva(metricasFila.segundosRestantesTransaccion)}
+          </span>
+        </div>
       </div>
 
-      {/* Alternador de Vistas (Asignaturas / Mi Horario) */}
-      <div className="p-4 pb-2">
+      {/* Píldoras de Navegación Tipo Ionic Segment */}
+      <div className="p-3 pb-1">
         <div className="grid grid-cols-2 gap-1 bg-[#14151A] p-1 rounded-2xl border border-[#2D323E]">
           <button
             onClick={() => establecerPestanaActiva('asignaturas')}
             className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               pestanaActiva === 'asignaturas'
-                ? 'bg-[#20232A] text-white shadow-md'
+                ? 'bg-[#20232A] text-[#31C4D7] shadow-md border border-[#31C4D7]/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Asignaturas ({asignaturas.length})</span>
+            <span>Propuesta ({asignaturas.length})</span>
           </button>
 
           <button
             onClick={() => establecerPestanaActiva('horario')}
             className={`py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
               pestanaActiva === 'horario'
-                ? 'bg-[#20232A] text-[#31C4D7] shadow-md'
+                ? 'bg-[#20232A] text-[#31C4D7] shadow-md border border-[#31C4D7]/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -83,234 +112,362 @@ export const InscripcionRamosApptui: React.FC = () => {
         </div>
       </div>
 
-      {/* Contenido Principal */}
-      <div className="px-4 space-y-4">
-        {pestanaActiva === 'asignaturas' ? (
-          /* LISTA DE ASIGNATURAS */
-          <div className="space-y-4">
-            {asignaturas.map((asig) => {
+      {pestanaActiva === 'asignaturas' ? (
+        <div className="p-3 space-y-3">
+          {/* Card Información Importante (del chunk /inscripcionAsig) */}
+          <div className="bg-[#1a2332] border border-[#234e70] rounded-2xl p-3 flex items-start gap-2.5 shadow-sm text-xs">
+            <Info className="w-4 h-4 text-[#31C4D7] flex-shrink-0 mt-0.5" />
+            <div className="text-[11px] text-slate-300 leading-snug">
+              <strong className="text-white block font-bold mb-0.5">Información importante</strong>
+              Para inscribir, despliega cada asignatura y selecciona tu sección preferida. El sistema valida choques de horario en tiempo real.
+            </div>
+          </div>
+
+          {/* Buscador Tipo ion-searchbar */}
+          <div className="relative">
+            <input
+              type="text"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por código o nombre..."
+              className="w-full bg-[#20232A] border border-[#2D323E] rounded-2xl py-2.5 pl-9 pr-4 text-xs text-white placeholder-slate-400 outline-none focus:border-[#31C4D7]"
+            />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            {busqueda && (
+              <button
+                onClick={() => setBusqueda('')}
+                className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Chips de Categorías (ion-chip) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
+            <button
+              onClick={() => setFiltroSemestre('TODAS')}
+              className={`px-3 py-1 rounded-xl font-bold transition-all whitespace-nowrap ${
+                filtroSemestre === 'TODAS'
+                  ? 'bg-[#31C4D7] text-slate-950 font-black'
+                  : 'bg-[#20232A] text-slate-300 border border-[#2D323E]'
+              }`}
+            >
+              Todas ({asignaturas.length})
+            </button>
+            <button
+              onClick={() => setFiltroSemestre('5')}
+              className={`px-3 py-1 rounded-xl font-bold transition-all whitespace-nowrap ${
+                filtroSemestre === '5'
+                  ? 'bg-[#31C4D7] text-slate-950 font-black'
+                  : 'bg-[#20232A] text-slate-300 border border-[#2D323E]'
+              }`}
+            >
+              5.° Semestre (4)
+            </button>
+            <button
+              onClick={() => setFiltroSemestre('PLAN_COMUN')}
+              className={`px-3 py-1 rounded-xl font-bold transition-all whitespace-nowrap ${
+                filtroSemestre === 'PLAN_COMUN'
+                  ? 'bg-[#31C4D7] text-slate-950 font-black'
+                  : 'bg-[#20232A] text-slate-300 border border-[#2D323E]'
+              }`}
+            >
+              Ciencias Básicas
+            </button>
+          </div>
+
+          {/* Lista de Asignaturas con Acordeones Tipo ion-accordion-group */}
+          <div className="space-y-3">
+            {asignaturasFiltradas.map((asig) => {
               const inscripcionExistente = asignaturasInscritas.find(
                 (item) => item.asignatura.codigo === asig.codigo
               );
               const turnoListaEspera = asignaturasEnListaEspera[asig.codigo];
+              const estaAbierto = acordeonAbierto[asig.codigo] ?? false;
 
               return (
                 <div
                   key={asig.codigo}
-                  className={`bg-[#20232A] border rounded-2xl overflow-hidden transition-all ${
+                  className={`bg-[#20232A] border rounded-2xl overflow-hidden transition-all shadow-md ${
                     inscripcionExistente
-                      ? 'border-[#31C4D7] shadow-lg'
-                      : 'border-[#2D323E] hover:border-slate-600'
+                      ? 'border-[#31C4D7] ring-1 ring-[#31C4D7]/50'
+                      : 'border-[#2D323E] hover:border-slate-500'
                   }`}
                 >
-                  {/* Encabezado de la Tarjeta */}
-                  <div className="p-4 bg-[#1a1d24] border-b border-[#2D323E]">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="px-2 py-0.5 rounded text-[10px] font-black"
-                          style={{ backgroundColor: asig.colorDistintivo, color: asig.colorTexto }}
-                        >
-                          {asig.codigo}
-                        </span>
-                        <h3 className="font-bold text-sm text-white leading-tight">{asig.nombre}</h3>
-                      </div>
-                      <span className="text-[11px] font-bold text-slate-400 font-mono">
-                        {asig.creditosSCT} SCT
+                  {/* Encabezado del Acordeón (ion-accordion header) */}
+                  <div
+                    onClick={() => alternarAcordeon(asig.codigo)}
+                    className="p-3.5 bg-[#1a1d24] flex items-center justify-between gap-2 cursor-pointer active:bg-[#1f232c] transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        className="px-2 py-0.5 rounded text-[10px] font-black tracking-wider flex-shrink-0"
+                        style={{ backgroundColor: asig.colorDistintivo, color: asig.colorTexto }}
+                      >
+                        {asig.codigo}
                       </span>
-                    </div>
-
-                    <div className="mt-1 flex items-center justify-between text-[11px]">
-                      <span className="text-emerald-400 font-medium">
-                        ✓ {asig.prerrequisitos[0]}
-                      </span>
-                      {inscripcionExistente && (
-                        <button
-                          onClick={() => desinscribirAsignatura(asig.codigo)}
-                          className="text-red-400 text-[11px] font-bold hover:underline"
-                        >
-                          Desmarcar
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Secciones de la Asignatura */}
-                  <div className="p-3 space-y-2.5">
-                    {asig.secciones.map((sec) => {
-                      const estaSeleccionada = estaSeccionInscrita(asig.codigo, sec.id);
-                      const estaSinCupo = sec.cuposDisponibles <= 0;
-
-                      return (
-                        <div
-                          key={sec.id}
-                          className={`p-3 rounded-xl border transition-all ${
-                            estaSeleccionada
-                              ? 'bg-[#13262F] border-[#31C4D7]/50'
-                              : 'bg-[#14151A] border-[#2D323E]'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-xs font-bold text-white">
-                              Sección {sec.numeroSeccion} • {sec.profesor}
-                            </span>
-                            <span
-                              className={`text-[11px] font-bold font-mono ${
-                                estaSinCupo ? 'text-red-400' : 'text-slate-300'
-                              }`}
-                            >
-                              {sec.cuposDisponibles}/{sec.cuposTotales} cupos
-                            </span>
-                          </div>
-
-                          <div className="text-[11px] text-slate-400 space-y-0.5 mb-3">
-                            {sec.horario.map((bloque, indiceBloque) => (
-                              <div key={indiceBloque} className="flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-[#31C4D7]" />
-                                <span>
-                                  <strong>{bloque.dia}</strong> {bloque.horaInicio}-{bloque.horaFin} ({bloque.sala})
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Botón de Acción */}
-                          {estaSinCupo ? (
-                            turnoListaEspera ? (
-                              <div className="w-full py-2 bg-amber-950/40 text-amber-300 border border-amber-700/50 rounded-xl text-center text-xs font-bold flex items-center justify-center gap-1.5">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
-                                <span>En Lista de Espera (Turno #{turnoListaEspera})</span>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => inscribirEnListaEspera(asig.codigo)}
-                                className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95"
-                              >
-                                <Users className="w-3.5 h-3.5" />
-                                <span>Anotarse en Lista de Espera (Turno #4)</span>
-                              </button>
-                            )
-                          ) : (
-                            <button
-                              onClick={() => seleccionarSeccion(asig, sec)}
-                              className={`w-full py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 ${
-                                estaSeleccionada
-                                  ? 'bg-[#31C4D7] text-[#14151A]'
-                                  : 'bg-[#20232A] hover:bg-[#2c313c] text-white border border-[#2D323E]'
-                              }`}
-                            >
-                              {estaSeleccionada ? (
-                                <>
-                                  <Check className="w-4 h-4" />
-                                  <span>Sección Seleccionada</span>
-                                </>
-                              ) : (
-                                <span>Seleccionar Sección {sec.numeroSeccion}</span>
-                              )}
-                            </button>
-                          )}
+                      <div className="min-w-0">
+                        <h4 className="font-extrabold text-xs text-white truncate leading-tight">
+                          {asig.nombre}
+                        </h4>
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                          <span>Créditos: <strong>{asig.creditosSCT} SCT</strong></span>
+                          <span>•</span>
+                          <span className="text-emerald-400">✓ Habilitada</span>
                         </div>
-                      );
-                    })}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {inscripcionExistente ? (
+                        <span className="px-2 py-0.5 bg-emerald-950/80 text-emerald-400 border border-emerald-800 rounded-lg text-[10px] font-bold flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          <span>Sec. {inscripcionExistente.seccion.numeroSeccion}</span>
+                        </span>
+                      ) : turnoListaEspera ? (
+                        <span className="px-2 py-0.5 bg-amber-950/80 text-amber-400 border border-amber-800 rounded-lg text-[10px] font-bold">
+                          Espera #{turnoListaEspera}
+                        </span>
+                      ) : null}
+
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 transition-transform ${
+                          estaAbierto ? 'rotate-180 text-white' : ''
+                        }`}
+                      />
+                    </div>
                   </div>
+
+                  {/* Cuerpo Expandido del Acordeón (ion-accordion content) */}
+                  {estaAbierto && (
+                    <div className="p-3.5 bg-[#14151A] space-y-3 border-t border-[#2D323E]/80 animate-fadeIn">
+                      {/* Meta Información Curricular Oficial */}
+                      <div className="grid grid-cols-2 gap-2 text-[11px] bg-[#1a1d24] p-2.5 rounded-xl border border-[#2D323E]">
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Tema / Área:</span>
+                          <span className="font-semibold text-slate-200">Línea de Especialidad</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Cupo estricto:</span>
+                          <span className="font-semibold text-[#31C4D7]">Sí (Concurrente)</span>
+                        </div>
+                      </div>
+
+                      {/* Lista de Secciones Disponibles */}
+                      <div className="space-y-2.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                          Secciones Disponibles
+                        </span>
+
+                        {asig.secciones.map((sec) => {
+                          const estaSeleccionada = estaSeccionInscrita(asig.codigo, sec.id);
+                          const estaSinCupo = sec.cuposDisponibles <= 0;
+
+                          return (
+                            <div
+                              key={sec.id}
+                              className={`p-3 rounded-2xl border transition-all ${
+                                estaSeleccionada
+                                  ? 'bg-[#13262F] border-[#31C4D7] shadow-md'
+                                  : 'bg-[#20232A] border-[#2D323E]'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-extrabold text-xs text-white">
+                                      Sección {sec.numeroSeccion}
+                                    </span>
+                                    {estaSeleccionada && (
+                                      <span className="px-1.5 py-0.2 bg-[#31C4D7] text-slate-950 font-black text-[9px] rounded">
+                                        INSCRITA
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-slate-300 mt-0.5">
+                                    Académico: <strong>{sec.profesor}</strong>
+                                  </p>
+                                </div>
+
+                                <div className="text-right">
+                                  <span
+                                    className={`text-[11px] font-mono font-bold block ${
+                                      estaSinCupo ? 'text-red-400' : 'text-emerald-400'
+                                    }`}
+                                  >
+                                    {sec.cuposDisponibles}/{sec.cuposTotales} cupos
+                                  </span>
+                                  <span className="text-[9px] text-slate-400">
+                                    {estaSinCupo ? 'Sin cupo' : 'Disponibles'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Horario de la Sección */}
+                              <div className="space-y-1 mb-3 bg-[#14151A] p-2 rounded-xl text-[10px] text-slate-300 border border-[#2D323E]/50">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                                  Horario Programado:
+                                </span>
+                                {sec.horario.map((bloque, idx) => (
+                                  <div key={idx} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                      <Clock className="w-3 h-3 text-[#31C4D7]" />
+                                      <span className="font-bold text-white">{bloque.dia}</span>
+                                      <span>{bloque.horaInicio} - {bloque.horaFin}</span>
+                                    </div>
+                                    <span className="text-slate-400">{bloque.sala}</span>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Botones de Selección / Lista de Espera */}
+                              {estaSeleccionada ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 py-2 bg-[#0c2b33] text-[#31C4D7] font-black rounded-xl text-xs flex items-center justify-center gap-1.5 border border-[#31C4D7]/50">
+                                    <Check className="w-4 h-4" />
+                                    <span>Sección Asignada</span>
+                                  </div>
+                                  <button
+                                    onClick={() => desinscribirAsignatura(asig.codigo)}
+                                    title="Quitar sección"
+                                    className="p-2 bg-red-950/40 text-red-400 hover:bg-red-900/60 rounded-xl border border-red-800/50 transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : estaSinCupo ? (
+                                turnoListaEspera ? (
+                                  <div className="w-full py-2 bg-amber-950/50 text-amber-300 border border-amber-700/60 rounded-xl text-center text-xs font-bold flex items-center justify-center gap-1.5">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
+                                    <span>En Lista de Espera (Turno #{turnoListaEspera})</span>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => inscribirEnListaEspera(asig.codigo)}
+                                    className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow"
+                                  >
+                                    <Users className="w-3.5 h-3.5" />
+                                    <span>Anotarse en Lista de Espera</span>
+                                  </button>
+                                )
+                              ) : (
+                                <button
+                                  onClick={() => seleccionarSeccion(asig, sec)}
+                                  className="w-full py-2 bg-[#20232A] hover:bg-[#282d37] text-white hover:text-[#31C4D7] border border-[#2D323E] hover:border-[#31C4D7] font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                                >
+                                  <span>Inscribir Sección {sec.numeroSeccion}</span>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
-        ) : (
-          /* VISTA DEL HORARIO MÓVIL POR DÍA */
-          <div className="space-y-4">
-            {/* Píldoras Selectoras de Día */}
-            <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1">
-              {DIAS_DE_LA_SEMANA.map((dia) => (
-                <button
-                  key={dia}
-                  onClick={() => establecerDiaSeleccionado(dia)}
-                  className={`flex-1 py-2 px-2 text-xs font-bold rounded-xl transition-all text-center ${
-                    diaSeleccionado === dia
-                      ? 'bg-[#31C4D7] text-[#14151A] shadow-md'
-                      : 'bg-[#20232A] text-slate-400 hover:text-white border border-[#2D323E]'
-                  }`}
-                >
-                  {dia.substring(0, 3).toUpperCase()}
-                </button>
-              ))}
-            </div>
-
-            {/* Bloques para el día seleccionado */}
-            <div className="bg-[#20232A] border border-[#2D323E] rounded-2xl p-4 divide-y divide-[#2D323E]">
-              {BLOQUES_HORARIOS_OFICIALES.map((bloque) => {
-                const coincidencia = asignaturasInscritas.find((item) =>
-                  item.seccion.horario.some(
-                    (b) => b.dia === diaSeleccionado && b.indiceBloque === bloque.indice
-                  )
-                );
-                const bloqueHorario = coincidencia?.seccion.horario.find(
-                  (b) => b.dia === diaSeleccionado && b.indiceBloque === bloque.indice
-                );
-
-                return (
-                  <div key={bloque.indice} className="py-3 first:pt-0 last:pb-0">
-                    <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-                      <span className="font-mono font-semibold">Bloque {bloque.indice + 1}</span>
-                      <span>{bloque.horario}</span>
-                    </div>
-
-                    {coincidencia && bloqueHorario ? (
-                      <div
-                        className="p-3 rounded-xl text-white shadow-sm"
-                        style={{ backgroundColor: coincidencia.asignatura.colorDistintivo }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-black text-xs">{coincidencia.asignatura.codigo}</span>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 bg-black/20 rounded">
-                            Sec. {coincidencia.seccion.numeroSeccion}
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold mt-0.5">{coincidencia.asignatura.nombre}</p>
-                        <div className="flex items-center justify-between text-[11px] text-white/90 mt-2 pt-1 border-t border-white/20">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {bloqueHorario.sala}
-                          </span>
-                          <span>{coincidencia.seccion.profesor}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="py-2 text-center text-slate-600 text-xs border border-dashed border-[#2D323E] rounded-xl">
-                        Sin actividad programada
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+        </div>
+      ) : (
+        /* VISTA DEL HORARIO MÓVIL POR DÍA */
+        <div className="p-3 space-y-3">
+          {/* Píldoras Selectoras de Día */}
+          <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1">
+            {DIAS_DE_LA_SEMANA.map((dia) => (
+              <button
+                key={dia}
+                onClick={() => establecerDiaSeleccionado(dia)}
+                className={`flex-1 py-2 px-1 text-xs font-bold rounded-xl transition-all text-center ${
+                  diaSeleccionado === dia
+                    ? 'bg-[#31C4D7] text-slate-950 shadow-md font-black'
+                    : 'bg-[#20232A] text-slate-400 hover:text-white border border-[#2D323E]'
+                }`}
+              >
+                {dia.substring(0, 3).toUpperCase()}
+              </button>
+            ))}
           </div>
-        )}
-      </div>
 
-      {/* Barra Inferior Fija para Confirmación Móvil */}
-      <div className="fixed bottom-16 left-0 right-0 bg-[#14151A]/95 backdrop-blur-md border-t border-[#2D323E] p-3 z-20 flex items-center justify-between gap-3 max-w-md mx-auto">
+          {/* Bloques para el día seleccionado */}
+          <div className="bg-[#20232A] border border-[#2D323E] rounded-2xl p-3 divide-y divide-[#2D323E]">
+            {BLOQUES_HORARIOS_OFICIALES.map((bloque) => {
+              const coincidencia = asignaturasInscritas.find((item) =>
+                item.seccion.horario.some(
+                  (b) => b.dia === diaSeleccionado && b.indiceBloque === bloque.indice
+                )
+              );
+              const bloqueHorario = coincidencia?.seccion.horario.find(
+                (b) => b.dia === diaSeleccionado && b.indiceBloque === bloque.indice
+              );
+
+              return (
+                <div key={bloque.indice} className="py-2.5 first:pt-0 last:pb-0">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                    <span className="font-mono font-semibold">Bloque {bloque.indice + 1}</span>
+                    <span>{bloque.horario}</span>
+                  </div>
+
+                  {coincidencia && bloqueHorario ? (
+                    <div
+                      className="p-3 rounded-xl text-white shadow-sm"
+                      style={{ backgroundColor: coincidencia.asignatura.colorDistintivo }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-xs">{coincidencia.asignatura.codigo}</span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-black/20 rounded">
+                          Sec. {coincidencia.seccion.numeroSeccion}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold mt-0.5">{coincidencia.asignatura.nombre}</p>
+                      <div className="flex items-center justify-between text-[10px] text-white/90 mt-2 pt-1 border-t border-white/20">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {bloqueHorario.sala}
+                        </span>
+                        <span>{coincidencia.seccion.profesor}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-2 text-center text-slate-500 text-[11px] border border-dashed border-[#2D323E] rounded-xl">
+                      Sin clase en este bloque
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Barra Inferior Fija para Confirmar Inscripción */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#14151A]/95 backdrop-blur-md border-t border-[#2D323E] p-3 z-30 flex items-center justify-between gap-3 max-w-[390px] mx-auto shadow-2xl">
         <div>
-          <span className="text-[10px] text-slate-400 block font-semibold uppercase">
-            Créditos:
+          <span className="text-[10px] text-slate-400 block font-bold uppercase">
+            Total Créditos:
           </span>
-          <span className="text-sm font-extrabold text-[#31C4D7] font-mono">
+          <span className="text-sm font-black text-[#31C4D7] font-mono">
             {totalCreditosSCT} / 30 SCT
           </span>
         </div>
 
         <button
-          onClick={confirmarInscripcionCurricular}
+          onClick={() => {
+            const exito = confirmarInscripcionCurricular();
+            if (exito) {
+              establecerPasoActual('COMPROBANTE_OFICIAL');
+            }
+          }}
           disabled={asignaturasInscritas.length === 0}
-          className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-md active:scale-95 flex items-center gap-1.5 ${
+          className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md active:scale-95 flex items-center gap-1.5 ${
             asignaturasInscritas.length > 0
-              ? 'bg-[#31C4D7] text-[#14151A] hover:bg-[#28b2c4]'
+              ? 'bg-[#31C4D7] text-slate-950 hover:bg-[#28b2c4]'
               : 'bg-[#20232A] text-slate-500 cursor-not-allowed border border-[#2D323E]'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>Confirmar Carga</span>
+          <span>Confirmar Inscripción</span>
         </button>
       </div>
     </div>
