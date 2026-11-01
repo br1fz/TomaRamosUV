@@ -27,7 +27,6 @@ export const InscripcionRamosApptui: React.FC = () => {
     asignaturasEnListaEspera,
     confirmarInscripcionCurricular,
     totalCreditosSCT,
-    metricasFila,
     establecerPasoActual,
   } = usarTomaRamos();
 
@@ -42,12 +41,6 @@ export const InscripcionRamosApptui: React.FC = () => {
 
   const alternarAcordeon = (codigo: string) => {
     setAcordeonAbierto((prev) => ({ ...prev, [codigo]: !prev[codigo] }));
-  };
-
-  const formatearCuentaRegresiva = (segundos: number) => {
-    const minutos = Math.floor(segundos / 60);
-    const segs = segundos % 60;
-    return `${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
   };
 
   const estaSeccionInscrita = (codigoAsignatura: string, seccionId: string) => {
@@ -70,19 +63,6 @@ export const InscripcionRamosApptui: React.FC = () => {
 
   return (
     <div className="pb-32 animate-fadeIn text-slate-100 select-none">
-      {/* Barra de Cuenta Regresiva de Transacción (10 minutos atómicos) */}
-      <div className="bg-[#13262F] border-b border-[#31C4D7]/30 px-4 py-2 flex items-center justify-between text-xs sticky top-0 z-20 shadow-md">
-        <div className="flex items-center gap-1.5 text-[#31C4D7] font-bold">
-          <Clock className="w-4 h-4 animate-spin text-[#31C4D7]" style={{ animationDuration: '6s' }} />
-          <span>Tiempo de Reserva:</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="font-mono font-black text-sm text-[#31C4D7] bg-[#0c2027] px-2 py-0.5 rounded-lg border border-[#31C4D7]/30">
-            {formatearCuentaRegresiva(metricasFila.segundosRestantesTransaccion)}
-          </span>
-        </div>
-      </div>
-
       {/* Píldoras de Navegación Tipo Ionic Segment */}
       <div className="p-3 pb-1">
         <div className="grid grid-cols-2 gap-1 bg-[#14151A] p-1 rounded-2xl border border-[#2D323E]">

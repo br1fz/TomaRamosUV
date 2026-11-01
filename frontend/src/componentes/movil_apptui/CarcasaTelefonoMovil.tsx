@@ -12,14 +12,20 @@ import { InscripcionRamosApptui } from './InscripcionRamosApptui';
 import { VistaHorarioArmado } from '../comunes/VistaHorarioArmado';
 import { ComprobanteOficialInscripcion } from '../comunes/ComprobanteOficialInscripcion';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
-import { Smartphone, Monitor } from 'lucide-react';
+import { Smartphone, Monitor, Clock } from 'lucide-react';
 
 export const CarcasaTelefonoMovil: React.FC = () => {
-  const { pasoActual, establecerPasoActual } = usarTomaRamos();
+  const { pasoActual, establecerPasoActual, metricasFila } = usarTomaRamos();
   const [menuAbierto, establecerMenuAbierto] = useState(false);
   const [perfilAbierto, establecerPerfilAbierto] = useState(false);
   const [pestanaMovil, establecerPestanaMovil] = useState('novedades');
   const [usarChasisSmartphone, establecerUsarChasisSmartphone] = useState(true);
+
+  const formatearCuentaRegresiva = (segundos: number) => {
+    const minutos = Math.floor(segundos / 60);
+    const segs = segundos % 60;
+    return `${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
+  };
 
   const manejarCambioPestana = (pestana: string) => {
     establecerPestanaMovil(pestana);
@@ -108,6 +114,21 @@ export const CarcasaTelefonoMovil: React.FC = () => {
             alCerrar={() => establecerMenuAbierto(false)}
             alAbrirPerfil={() => establecerPerfilAbierto(true)}
           />
+
+          {/* Barra Fija Superior: Tiempo de Reserva (Debajo del top-bar y fija al hacer scroll) */}
+          {pasoActual === 'SELECCION_RAMOS' && (
+            <div className="bg-[#13262F] border-b border-[#31C4D7]/40 px-4 py-2 flex items-center justify-between text-xs z-30 shadow-md flex-shrink-0 animate-fadeIn">
+              <div className="flex items-center gap-1.5 text-[#31C4D7] font-bold">
+                <Clock className="w-4 h-4 animate-spin text-[#31C4D7]" style={{ animationDuration: '6s' }} />
+                <span>Tiempo de Reserva:</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-black text-sm text-[#31C4D7] bg-[#0c2027] px-2 py-0.5 rounded-lg border border-[#31C4D7]/30">
+                  {formatearCuentaRegresiva(metricasFila.segundosRestantesTransaccion)}
+                </span>
+              </div>
+            </div>
+          )}
         </>
       )}
 
