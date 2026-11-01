@@ -9,7 +9,7 @@ import { EnlacesApptuiMovil } from './EnlacesApptuiMovil';
 import { NotificacionesApptuiMovil } from './NotificacionesApptuiMovil';
 import { VistaEsperaFilaApptui } from './VistaEsperaFilaApptui';
 import { InscripcionRamosApptui } from './InscripcionRamosApptui';
-import { VistaHorarioArmado } from '../comunes/VistaHorarioArmado';
+import { HorarioArmadoApptuiMovil } from './HorarioArmadoApptuiMovil';
 import { ComprobanteApptuiMovil } from './ComprobanteApptuiMovil';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 import { Smartphone, Monitor, Clock } from 'lucide-react';
@@ -62,9 +62,9 @@ export const CarcasaTelefonoMovil: React.FC = () => {
       return <InscripcionRamosApptui />;
     }
 
-    // 5. Horario Armado
+    // 5. Horario Armado Adaptado para Móvil
     if (pasoActual === 'HORARIO_ARMADO') {
-      return <VistaHorarioArmado />;
+      return <HorarioArmadoApptuiMovil />;
     }
 
     // 6. Comprobante Oficial con Código QR Adaptado para Móvil
@@ -82,7 +82,7 @@ export const CarcasaTelefonoMovil: React.FC = () => {
     }
 
     if (pestanaMovil === 'actividades') {
-      return <VistaHorarioArmado />;
+      return <HorarioArmadoApptuiMovil />;
     }
 
     // Por defecto: Dashboard de Novedades (Home)
