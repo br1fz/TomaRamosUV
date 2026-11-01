@@ -129,3 +129,4 @@ export const ModalAlertaCurricular: React.FC = () => {
     </div>
   );
 };
+
