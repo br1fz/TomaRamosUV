@@ -51,7 +51,7 @@ export const EncabezadoSuperiorApptui: React.FC<PropiedadesEncabezadoSuperiorApp
           </div>
         </div>
 
-        {/* Iconos de la derecha: TUI y Avatar de Bruno Díaz */}
+        {/* Iconos de la derecha: TUI y Avatar del Estudiante */}
         <div className="flex items-center gap-2">
           <button
             onClick={alAbrirPerfil}
@@ -70,7 +70,7 @@ export const EncabezadoSuperiorApptui: React.FC<PropiedadesEncabezadoSuperiorApp
               alt={estudiante.nombre}
               className="w-full h-full object-cover"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/portal_alumnos_files/avatar_bruno_diaz.jpg';
+                (e.target as HTMLImageElement).src = '/portal_alumnos_files/mis_datos.png';
               }}
             />
           </button>

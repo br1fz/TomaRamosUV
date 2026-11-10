@@ -19,6 +19,7 @@ import type { DiaSemana, Asignatura } from '../../tipos';
 
 export const InscripcionRamosApptui: React.FC = () => {
   const {
+    estudiante,
     asignaturas,
     asignaturasInscritas,
     seleccionarSeccion,
@@ -28,16 +29,14 @@ export const InscripcionRamosApptui: React.FC = () => {
     confirmarInscripcionCurricular,
     totalCreditosSCT,
     establecerPasoActual,
+    filtroSemestre,
+    establecerFiltroSemestre,
   } = usarTomaRamos();
 
   const [pestanaActiva, establecerPestanaActiva] = useState<'asignaturas' | 'horario'>('asignaturas');
   const [diaSeleccionado, establecerDiaSeleccionado] = useState<DiaSemana>('Lunes');
   const [busqueda, setBusqueda] = useState('');
-  const [filtroSemestre, setFiltroSemestre] = useState<'TODAS' | '5' | 'PLAN_COMUN'>('TODAS');
-  const [acordeonAbierto, setAcordeonAbierto] = useState<Record<string, boolean>>({
-    'CIN 311': true,
-    'FIS 311': true,
-  });
+  const [acordeonAbierto, setAcordeonAbierto] = useState<Record<string, boolean>>({});
 
   const alternarAcordeon = (codigo: string) => {
     setAcordeonAbierto((prev) => ({ ...prev, [codigo]: !prev[codigo] }));
@@ -51,13 +50,17 @@ export const InscripcionRamosApptui: React.FC = () => {
 
   // Filtrado reactivo de asignaturas
   const asignaturasFiltradas = asignaturas.filter((asig: Asignatura) => {
-    const coincideTexto =
-      asig.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      asig.codigo.toLowerCase().includes(busqueda.toLowerCase());
-
-    if (!coincideTexto) return false;
-    if (filtroSemestre === '5') return asig.semestre === 5;
-    if (filtroSemestre === 'PLAN_COMUN') return asig.codigo.startsWith('MAT') || asig.codigo.startsWith('FIS');
+    if (filtroSemestre !== 'TODOS' && asig.semestre !== filtroSemestre) {
+      return false;
+    }
+    if (busqueda.trim()) {
+      const q = busqueda.toLowerCase().trim();
+      const coincideTexto =
+        asig.nombre.toLowerCase().includes(q) ||
+        asig.codigo.toLowerCase().includes(q) ||
+        asig.prerrequisitos.some((p) => p.toLowerCase().includes(q));
+      if (!coincideTexto) return false;
+    }
     return true;
   });
 
@@ -123,38 +126,44 @@ export const InscripcionRamosApptui: React.FC = () => {
             )}
           </div>
 
-          {/* Chips de Categorías (ion-chip) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
+          {/* Chips de Categorías y Semestres */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] scrollbar-thin">
             <button
-              onClick={() => setFiltroSemestre('TODAS')}
-              className={`px-3 py-1 rounded-xl font-bold transition-all whitespace-nowrap ${
-                filtroSemestre === 'TODAS'
+              onClick={() => establecerFiltroSemestre('TODOS')}
+              className={`px-3 py-1 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer ${
+                filtroSemestre === 'TODOS'
                   ? 'bg-[#31C4D7] text-slate-950 font-black'
                   : 'bg-[#20232A] text-slate-300 border border-[#2D323E]'
               }`}
             >
               Todas ({asignaturas.length})
             </button>
-            <button
-              onClick={() => setFiltroSemestre('5')}
-              className={`px-3 py-1 rounded-xl font-bold transition-all whitespace-nowrap ${
-                filtroSemestre === '5'
-                  ? 'bg-[#31C4D7] text-slate-950 font-black'
-                  : 'bg-[#20232A] text-slate-300 border border-[#2D323E]'
-              }`}
-            >
-              5.° Semestre (4)
-            </button>
-            <button
-              onClick={() => setFiltroSemestre('PLAN_COMUN')}
-              className={`px-3 py-1 rounded-xl font-bold transition-all whitespace-nowrap ${
-                filtroSemestre === 'PLAN_COMUN'
-                  ? 'bg-[#31C4D7] text-slate-950 font-black'
-                  : 'bg-[#20232A] text-slate-300 border border-[#2D323E]'
-              }`}
-            >
-              Ciencias Básicas
-            </button>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => {
+              const esActivo = filtroSemestre === sem;
+              const esSemAlumno = sem === estudiante.semestreActual;
+              return (
+                <button
+                  key={sem}
+                  onClick={() => establecerFiltroSemestre(sem)}
+                  className={`px-2.5 py-1 rounded-xl font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                    esActivo
+                      ? 'bg-[#31C4D7] text-slate-950 font-black'
+                      : 'bg-[#20232A] text-slate-300 border border-[#2D323E]'
+                  }`}
+                >
+                  <span>Sem {sem}</span>
+                  {esSemAlumno && (
+                    <span
+                      className={`text-[8px] px-1 rounded-full ${
+                        esActivo ? 'bg-slate-950 text-sky-200' : 'bg-emerald-500/30 text-emerald-400'
+                      }`}
+                    >
+                      ★ Mi nivel
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Lista de Asignaturas con Acordeones Tipo ion-accordion-group */}
@@ -192,7 +201,9 @@ export const InscripcionRamosApptui: React.FC = () => {
                           {asig.nombre}
                         </h4>
                         <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                          <span>Créditos: <strong>{asig.creditosSCT} SCT</strong></span>
+                          <span className="text-sky-300 font-semibold">Sem. {asig.semestre}</span>
+                          <span>•</span>
+                          <span>{asig.creditosSCT} SCT</span>
                           <span>•</span>
                           <span className="text-emerald-400">✓ Habilitada</span>
                         </div>

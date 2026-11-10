@@ -91,14 +91,14 @@ export const MenuLateralApptui: React.FC<PropiedadesMenuLateralApptui> = ({
         {/* Tarjeta de Perfil de Usuario (WhatsApp Image 2026-10-30 at 5.11.00 PM (2)) */}
         <div className="p-3.5 m-3 bg-[#20232A] border border-[#2D323E] rounded-2xl shadow-md">
           <div className="flex items-center gap-3">
-            {/* Foto de Bruno Díaz */}
+            {/* Foto del Estudiante */}
             <div className="w-14 h-16 rounded-xl overflow-hidden border border-[#2D323E] flex-shrink-0 bg-slate-800">
               <img
                 src={estudiante.fotoPerfilUrl}
                 alt={estudiante.nombre}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/portal_alumnos_files/avatar_bruno_diaz.jpg';
+                  (e.target as HTMLImageElement).src = '/portal_alumnos_files/mis_datos.png';
                 }}
               />
             </div>
@@ -106,10 +106,10 @@ export const MenuLateralApptui: React.FC<PropiedadesMenuLateralApptui> = ({
             {/* Datos */}
             <div className="flex-1 min-w-0">
               <h4 className="font-extrabold text-sm text-white truncate">
-                Bruno Díaz
+                {estudiante.nombre}
               </h4>
               <p className="text-[11px] text-slate-400 truncate leading-snug">
-                Ingenieria Civil En Informatica
+                {estudiante.carrera}
               </p>
 
               <button

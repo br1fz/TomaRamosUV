@@ -9,11 +9,21 @@ import type {
   ComprobanteOficialInscripcion,
   ModoVisualizacion,
   PasoFlujoTomaRamos,
+  UsuarioPrueba,
+  ResultadoAutenticacion,
 } from '../tipos';
 import {
-  ESTUDIANTE_INICIAL_PRUEBA,
-  ASIGNATURAS_INICIALES_5TO_SEMESTRE,
+  CATALOGO_MALLA_COMPLETA,
+  USUARIOS_PRUEBA_ALPHA,
+  buscarUsuarioPrueba,
 } from '../datos';
+import {
+  autenticarUsuario,
+  firmarTokenJWT,
+  guardarSesion,
+  restaurarSesionActiva,
+  limpiarSesion,
+} from '../servicios';
 import { detectarTopeHorario } from '../utilidades/detectorTopesHorarios';
 import {
   reproducirArpegioLlegadaTurno,
@@ -30,6 +40,10 @@ export interface InfoAlertaCurricular {
 
 interface TipoContextoTomaRamos {
   estudiante: Estudiante;
+  establecerEstudiante: (est: Estudiante) => void;
+  usuariosPrueba: UsuarioPrueba[];
+  filtroSemestre: number | 'TODOS';
+  establecerFiltroSemestre: (semestre: number | 'TODOS') => void;
   modoVisualizacion: ModoVisualizacion;
   establecerModoVisualizacion: (modo: ModoVisualizacion) => void;
   pasoActual: PasoFlujoTomaRamos;
@@ -51,6 +65,8 @@ interface TipoContextoTomaRamos {
   descartarAlertaCurricular: () => void;
   // Métodos de control y acciones
   iniciarSesion: (correo: string, rut: string) => void;
+  iniciarSesionConCredenciales: (correo: string, contrasena: string) => Promise<ResultadoAutenticacion>;
+  seleccionarUsuarioPruebaDirecto: (idOUsuario: string | UsuarioPrueba) => Promise<void>;
   cerrarSesion: () => void;
   entrarAFilaVirtual: () => void;
   configurarAlertaSonora: (habilitada: boolean) => void;
@@ -100,10 +116,27 @@ const cargarEstadoPersistido = (): EstadoPersistente | null => {
   return null;
 };
 
+const cargarUsuarioPersistido = (): Estudiante => {
+  if (typeof window === 'undefined') return USUARIOS_PRUEBA_ALPHA[0];
+  try {
+    const raw = sessionStorage.getItem('toma_ramos_uv_usuario_activo_v1');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.rut) return parsed;
+    }
+  } catch {
+    // ignorar error
+  }
+  return USUARIOS_PRUEBA_ALPHA[0];
+};
+
 export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const estadoPersistido = cargarEstadoPersistido();
 
-  const [estudiante] = useState<Estudiante>(ESTUDIANTE_INICIAL_PRUEBA);
+  const [estudiante, establecerEstudiante] = useState<Estudiante>(cargarUsuarioPersistido);
+  const [filtroSemestre, establecerFiltroSemestre] = useState<number | 'TODOS'>(
+    cargarUsuarioPersistido().semestreActual || 5
+  );
   const [modoVisualizacion, establecerModoVisualizacion] = useState<ModoVisualizacion>('ESCRITORIO_WEB');
   const [pasoActual, establecerPasoActual] = useState<PasoFlujoTomaRamos>(
     estadoPersistido?.pasoActual || 'INICIO_PORTAL'
@@ -111,7 +144,7 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
   const [metricasFila, establecerMetricasFila] = useState<MetricasFilaVirtual>(
     estadoPersistido?.metricasFila || METRICAS_INICIALES_FILA
   );
-  const [asignaturas, establecerAsignaturas] = useState<Asignatura[]>(ASIGNATURAS_INICIALES_5TO_SEMESTRE);
+  const [asignaturas, establecerAsignaturas] = useState<Asignatura[]>(CATALOGO_MALLA_COMPLETA);
   const [asignaturasInscritas, establecerAsignaturasInscritas] = useState<AsignaturaInscrita[]>(
     estadoPersistido?.asignaturasInscritas || []
   );
@@ -132,6 +165,16 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
   // Multiplicador de velocidad de avance para la simulación
   const velocidadRef = useRef<number>(1);
   const turnoConcedidoRef = useRef<boolean>(false);
+
+  // Intentar restaurar sesión activa JWT al montar
+  useEffect(() => {
+    restaurarSesionActiva().then((usuario) => {
+      if (usuario) {
+        establecerEstudiante(usuario);
+        establecerFiltroSemestre(usuario.semestreActual);
+      }
+    });
+  }, []);
 
   // Cálculo dinámico de créditos inscritos
   const totalCreditosSCT = asignaturasInscritas.reduce(
@@ -218,6 +261,7 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
             estado: 'EXPIRADA',
           };
         }
+
         return {
           ...anterior,
           segundosRestantesTransaccion: anterior.segundosRestantesTransaccion - 1,
@@ -252,9 +296,50 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
     estaInscripcionCompletada,
   ]);
 
-  const iniciarSesion = (_correo: string, rut: string) => {
+  const iniciarSesion = (correo: string, rut: string) => {
+    const usuarioEncontrado = buscarUsuarioPrueba(correo) || buscarUsuarioPrueba(rut);
+    if (usuarioEncontrado) {
+      establecerEstudiante(usuarioEncontrado);
+      establecerFiltroSemestre(usuarioEncontrado.semestreActual);
+      firmarTokenJWT(usuarioEncontrado).then((token) => {
+        guardarSesion(token, usuarioEncontrado);
+      });
+    }
     // Notificar a otras pestañas para bloquear concurrencia unitaria
-    canalSesionUnica.notificarNuevoInicioSesion(rut);
+    canalSesionUnica.notificarNuevoInicioSesion(rut || estudiante.rut);
+    establecerPasoActual('PORTAL_ALUMNOS');
+  };
+
+  const iniciarSesionConCredenciales = async (
+    correo: string,
+    contrasena: string
+  ): Promise<ResultadoAutenticacion> => {
+    const resultado = await autenticarUsuario(correo, contrasena);
+    if (resultado.exito && resultado.estudiante) {
+      establecerEstudiante(resultado.estudiante);
+      establecerFiltroSemestre(resultado.estudiante.semestreActual);
+      canalSesionUnica.notificarNuevoInicioSesion(resultado.estudiante.rut);
+      establecerPasoActual('PORTAL_ALUMNOS');
+    }
+    return resultado;
+  };
+
+  const seleccionarUsuarioPruebaDirecto = async (
+    idOUsuario: string | UsuarioPrueba
+  ): Promise<void> => {
+    let targetUser: UsuarioPrueba | undefined;
+    if (typeof idOUsuario === 'string') {
+      targetUser = buscarUsuarioPrueba(idOUsuario);
+    } else {
+      targetUser = idOUsuario;
+    }
+    if (!targetUser) return;
+
+    const token = await firmarTokenJWT(targetUser);
+    guardarSesion(token, targetUser);
+    establecerEstudiante(targetUser);
+    establecerFiltroSemestre(targetUser.semestreActual);
+    canalSesionUnica.notificarNuevoInicioSesion(targetUser.rut);
     establecerPasoActual('PORTAL_ALUMNOS');
   };
 
@@ -268,6 +353,7 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const cerrarSesion = () => {
+    limpiarSesion();
     try {
       sessionStorage.removeItem(CLAVE_ALMACENAMIENTO_SESION);
     } catch {
@@ -432,12 +518,13 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const reiniciarSimulacion = () => {
+    limpiarSesion();
     try {
       sessionStorage.removeItem(CLAVE_ALMACENAMIENTO_SESION);
     } catch {
       // Ignorar
     }
-    establecerAsignaturas(ASIGNATURAS_INICIALES_5TO_SEMESTRE);
+    establecerAsignaturas(CATALOGO_MALLA_COMPLETA);
     establecerAsignaturasInscritas([]);
     establecerConflictoActivo(null);
     establecerSesionTransferida(false);
@@ -454,6 +541,10 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
     <ContextoTomaRamos.Provider
       value={{
         estudiante,
+        establecerEstudiante,
+        usuariosPrueba: USUARIOS_PRUEBA_ALPHA,
+        filtroSemestre,
+        establecerFiltroSemestre,
         modoVisualizacion,
         establecerModoVisualizacion,
         pasoActual,
@@ -474,6 +565,8 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
         alertaCurricular,
         descartarAlertaCurricular,
         iniciarSesion,
+        iniciarSesionConCredenciales,
+        seleccionarUsuarioPruebaDirecto,
         cerrarSesion,
         entrarAFilaVirtual,
         configurarAlertaSonora,

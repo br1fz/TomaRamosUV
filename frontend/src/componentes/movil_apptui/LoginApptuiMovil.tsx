@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Key, Wifi, Battery, Signal, Loader2, ArrowLeft, Globe, Lock } from 'lucide-react';
+import { Key, Wifi, Battery, Signal, Loader2, ArrowLeft, Globe, Lock, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
+import type { UsuarioPrueba } from '../../tipos';
 
 const IconoInstagram: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
   <svg
@@ -23,29 +24,47 @@ interface PropiedadesLoginApptuiMovil {
 }
 
 export const LoginApptuiMovil: React.FC<PropiedadesLoginApptuiMovil> = ({ alIngresarExitoso }) => {
-  const { estudiante, iniciarSesion } = usarTomaRamos();
+  const {
+    estudiante,
+    iniciarSesionConCredenciales,
+    seleccionarUsuarioPruebaDirecto,
+    usuariosPrueba,
+  } = usarTomaRamos();
+
   const [cargando, setCargando] = useState(false);
   const [vistaSSO, setVistaSSO] = useState<'LOGIN' | 'TIPO_CUENTA' | 'FORM_PREGRADO'>('LOGIN');
-  const [correoInput, setCorreoInput] = useState('bruno.diaz');
-  const [passwordInput, setPasswordInput] = useState('••••••••••••');
+  const [correoInput, setCorreoInput] = useState('prueba1');
+  const [passwordInput, setPasswordInput] = useState('PruebaUV.2026!');
+  const [errorLogin, setErrorLogin] = useState<string | null>(null);
 
-  const manejarIngresoDirecto = () => {
+  const manejarIngresoDirecto = async (usuarioEspecifico?: UsuarioPrueba) => {
     setCargando(true);
-    setTimeout(() => {
-      setCargando(false);
-      iniciarSesion(estudiante.correo, estudiante.rut);
-      if (alIngresarExitoso) alIngresarExitoso();
-    }, 700);
+    setErrorLogin(null);
+    const target =
+      usuarioEspecifico ||
+      usuariosPrueba.find((u) => u.rut === estudiante.rut) ||
+      usuariosPrueba[0];
+    await seleccionarUsuarioPruebaDirecto(target);
+    setCargando(false);
+    if (alIngresarExitoso) alIngresarExitoso();
   };
 
-  const manejarIngresoSSO = (e: React.FormEvent) => {
+  const manejarIngresoSSO = async (e: React.FormEvent) => {
     e.preventDefault();
     setCargando(true);
-    setTimeout(() => {
-      setCargando(false);
-      iniciarSesion(`${correoInput}@estudiantes.uv.cl`, estudiante.rut);
+    setErrorLogin(null);
+    const identificador = correoInput.includes('@')
+      ? correoInput.trim()
+      : `${correoInput.trim()}@estudiantes.uv.cl`;
+
+    const res = await iniciarSesionConCredenciales(identificador, passwordInput);
+    setCargando(false);
+
+    if (res.exito) {
       if (alIngresarExitoso) alIngresarExitoso();
-    }, 700);
+    } else {
+      setErrorLogin(res.mensajeError || 'Credenciales inválidas');
+    }
   };
 
   // 1. Subflujo SSO Oficial (In-App Browser simulado según WhatsApp Image 2026-10-30 at 5.11.03 PM (3) y (4))
@@ -173,9 +192,16 @@ export const LoginApptuiMovil: React.FC<PropiedadesLoginApptuiMovil> = ({ alIngr
 
         {/* Formulario SSO Estudiante Pregrado */}
         <div className="p-5 flex-1 flex flex-col justify-center max-w-xs mx-auto w-full">
-          <h2 className="text-sm font-bold text-center text-white mb-5 leading-snug">
+          <h2 className="text-sm font-bold text-center text-white mb-4 leading-snug">
             Acceso para Estudiante Pregrado
           </h2>
+
+          {errorLogin && (
+            <div className="mb-4 p-2.5 rounded-xl border border-red-500/50 bg-red-950/40 text-red-300 text-[11px] flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+              <span>{errorLogin}</span>
+            </div>
+          )}
 
           <form onSubmit={manejarIngresoSSO} className="space-y-4">
             <div>
@@ -332,14 +358,56 @@ export const LoginApptuiMovil: React.FC<PropiedadesLoginApptuiMovil> = ({ alIngr
         </p>
       </div>
 
+      {/* Selector Alpha Testing Móvil (12 Estudiantes de Prueba) */}
+      <div className="mx-3 my-2 p-2.5 bg-[#20232A] rounded-2xl border border-[#2D323E]">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <span className="text-[11px] font-bold text-[#31C4D7] flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#31C4D7]" />
+            Alpha Testers (12 Alumnos)
+          </span>
+          <span className="text-[9px] text-slate-400">Toca para entrar</span>
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+          {usuariosPrueba.map((u) => {
+            const nick = u.correo.split('@')[0];
+            return (
+              <button
+                key={u.id}
+                type="button"
+                onClick={() => manejarIngresoDirecto(u)}
+                className="flex-shrink-0 px-2.5 py-1.5 rounded-xl bg-[#14151A] hover:bg-[#252830] active:scale-95 border border-[#2D323E] hover:border-[#31C4D7]/50 text-left transition-all"
+                title={`${u.nombre} - ${u.carrera}`}
+              >
+                <div className="text-[10px] font-bold text-white flex items-center gap-1">
+                  <span>{nick}</span>
+                </div>
+                <div className="text-[8.5px] text-[#31C4D7] font-semibold">
+                  Sem. {u.semestreActual}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Botón Principal: Ingresar */}
-      <div className="px-3 my-2">
+      <div className="px-3 my-1">
         <button
-          onClick={manejarIngresoDirecto}
-          className="w-full py-3.5 bg-[#168a9a] hover:bg-[#1a9cac] text-white font-black rounded-2xl text-sm flex items-center justify-center gap-2.5 shadow-lg active:scale-95 transition-all tracking-wide"
+          onClick={() => manejarIngresoDirecto()}
+          className="w-full py-3 bg-[#168a9a] hover:bg-[#1a9cac] text-white font-black rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all tracking-wide"
         >
           <Key className="w-4 h-4 text-white rotate-45" />
-          <span>Ingresar</span>
+          <span>Ingresar ({estudiante.nombre.split(' ')[0]})</span>
+        </button>
+      </div>
+
+      {/* Botón Acceso SSO Completo */}
+      <div className="px-3 mb-2">
+        <button
+          onClick={() => setVistaSSO('FORM_PREGRADO')}
+          className="w-full py-2 bg-transparent hover:bg-white/5 border border-slate-700 text-slate-300 font-bold rounded-2xl text-[11px] flex items-center justify-center gap-2 transition-all"
+        >
+          <span>Ingresar con Cuenta Microsoft SSO</span>
         </button>
       </div>
 

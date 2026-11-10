@@ -38,14 +38,14 @@ export const PerfilApptuiMovil: React.FC<PropiedadesPerfilApptuiMovil> = ({ alCe
 
       {/* Tarjeta de Información del Estudiante (WhatsApp Image 2026-10-30 at 5.11.03 PM) */}
       <div className="bg-[#20232A] border border-[#2D323E] rounded-3xl p-4 shadow-xl flex items-start gap-4">
-        {/* Foto de Bruno Díaz */}
+        {/* Foto del Estudiante */}
         <div className="w-20 h-24 rounded-2xl overflow-hidden border border-[#2D323E] flex-shrink-0 bg-slate-800">
           <img
             src={estudiante.fotoPerfilUrl}
             alt={estudiante.nombre}
             className="w-full h-full object-cover"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = '/portal_alumnos_files/avatar_bruno_diaz.jpg';
+              (e.target as HTMLImageElement).src = '/portal_alumnos_files/mis_datos.png';
             }}
           />
         </div>

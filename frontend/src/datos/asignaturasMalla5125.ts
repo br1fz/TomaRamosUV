@@ -22,18 +22,18 @@ export const DIAS_DE_LA_SEMANA: DiaSemana[] = [
 ];
 
 /**
- * Perfil de estudiante genérico para pruebas y simulación
+ * Perfil de estudiante genérico para pruebas y simulación (Anonimizado para Alpha Testing)
  */
 export const ESTUDIANTE_INICIAL_PRUEBA: Estudiante = {
-  nombre: 'Bruno Enrique Díaz Fernández',
-  rut: '19.926.640-3',
-  correo: 'bruno.diaz@estudiantes.uv.cl',
+  nombre: 'Estudiante Prueba 1',
+  rut: '20.123.456-5',
+  correo: 'prueba1@estudiantes.uv.cl',
   carrera: 'Ingeniería Civil Informática',
   codigoCarrera: '19085 - Casa Central - Diurno',
   sedeCampus: 'Facultad de Ingeniería - Av. Gran Bretaña 1091, Playa Ancha',
-  planCurricular: 'Malla 5125 / Plan Común UV',
+  planCurricular: 'Malla Curricular 2023 / Plan Común UV',
   semestreActual: 5,
-  fotoPerfilUrl: '/portal_alumnos_files/avatar_bruno_diaz.jpg',
+  fotoPerfilUrl: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><circle cx="64" cy="64" r="64" fill="%230284c7"/><text x="50%" y="54%" font-size="44" font-weight="bold" fill="white" font-family="sans-serif" dominant-baseline="middle" text-anchor="middle">P1</text></svg>`,
   estadoAcademico: 'REGULAR ACTIVO',
   grupoPrioridad: 'Grupo 1 (Prioridad Académica Alta - Rango 1)',
 };

@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { Key, Eye, EyeOff, LogIn, AlertTriangle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Key, Eye, EyeOff, LogIn, AlertTriangle, CheckCircle2, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 
 type PerfilUsuario = 'PREGRADO' | 'FUNCIONARIOS' | 'POSTGRADO' | 'ALUMNI';
 
 export const PaginaEntradaPortalUV: React.FC = () => {
-  const { iniciarSesion, estudiante } = usarTomaRamos();
+  const { iniciarSesionConCredenciales, seleccionarUsuarioPruebaDirecto, usuariosPrueba } = usarTomaRamos();
 
   const [perfilSeleccionado, setPerfilSeleccionado] = useState<PerfilUsuario>('PREGRADO');
-  const [cuenta, setCuenta] = useState<string>('estudiante.prueba');
-  const [password, setPassword] = useState<string>('PortalUV2026!');
+  const [cuenta, setCuenta] = useState<string>('prueba1');
+  const [password, setPassword] = useState<string>('PruebaUV.2026!');
   const [mostrarPassword, setMostrarPassword] = useState<boolean>(false);
   const [cargando, setCargando] = useState<boolean>(false);
+  const [errorLogin, setErrorLogin] = useState<string | null>(null);
+  const [mostrarPanelAlpha, setMostrarPanelAlpha] = useState<boolean>(true);
   const [modalAyudaAbierto, setModalAyudaAbierto] = useState<boolean>(false);
   const [modalAccesibilidadAbierto, setModalAccesibilidadAbierto] = useState<boolean>(false);
 
@@ -31,22 +33,30 @@ export const PaginaEntradaPortalUV: React.FC = () => {
     }
   };
 
-  const manejarEnvio = (e: React.FormEvent) => {
+  const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cuenta.trim()) return;
 
     setCargando(true);
-    setTimeout(() => {
-      const correoCompleto = `${cuenta.trim()}${obtenerDominio()}`;
-      iniciarSesion(correoCompleto, estudiante.rut);
-      setCargando(false);
-    }, 600);
+    setErrorLogin(null);
+
+    const identificador = cuenta.includes('@') ? cuenta.trim() : `${cuenta.trim()}${obtenerDominio()}`;
+    const resultado = await iniciarSesionConCredenciales(identificador, password);
+    setCargando(false);
+
+    if (!resultado.exito) {
+      setErrorLogin(resultado.mensajeError || 'Credenciales institucionales incorrectas');
+    }
   };
 
-  const rellenarCredencialesPrueba = () => {
-    setPerfilSeleccionado('PREGRADO');
-    setCuenta('estudiante.prueba');
-    setPassword('PortalUV2026!');
+  const seleccionarUsuarioRapido = (usuarioId: string) => {
+    const usuario = usuariosPrueba.find((u) => u.id === usuarioId);
+    if (usuario) {
+      setPerfilSeleccionado('PREGRADO');
+      setCuenta(usuario.correo.split('@')[0]);
+      setPassword('PruebaUV.2026!');
+      setErrorLogin(null);
+    }
   };
 
   const enlacesInstitucionales = [
@@ -301,16 +311,73 @@ export const PaginaEntradaPortalUV: React.FC = () => {
                 </div>
               </div>
 
-              {/* Botón de Relleno Rápido de Demo / Alumno de Prueba */}
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={rellenarCredencialesPrueba}
-                  className="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 border border-sky-200 text-[#003c58] text-[11px] font-bold rounded-[4px] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                  <span>Autocompletar Estudiante de Prueba: estudiante.prueba</span>
-                </button>
+              {/* Mensaje de Error de Autenticación */}
+              {errorLogin && (
+                <div className="p-2.5 rounded-[4px] border border-red-300 bg-red-50 text-red-800 text-xs flex items-start gap-2 animate-shake">
+                  <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="font-medium">{errorLogin}</p>
+                </div>
+              )}
+
+              {/* Panel de Usuarios de Prueba Alpha Testing (12 Testers) */}
+              <div className="rounded-[4px] border border-sky-200 bg-sky-50/70 p-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#003c58]">
+                    <ShieldCheck className="w-4 h-4 text-sky-600" />
+                    <span>Alpha Testers (12 Alumnos)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMostrarPanelAlpha(!mostrarPanelAlpha)}
+                    className="text-[11px] text-sky-700 hover:text-sky-900 font-semibold flex items-center gap-0.5 cursor-pointer"
+                  >
+                    <span>{mostrarPanelAlpha ? 'Ocultar' : 'Ver todos'}</span>
+                    {mostrarPanelAlpha ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+
+                {mostrarPanelAlpha && (
+                  <div className="space-y-2 pt-1 border-t border-sky-100">
+                    <p className="text-[10px] text-slate-600 leading-tight">
+                      Contraseña bcrypt común: <strong className="text-slate-800 font-mono">PruebaUV.2026!</strong>. Haz clic para seleccionar o ingresar directo:
+                    </p>
+                    <div className="grid grid-cols-3 gap-1 max-h-36 overflow-y-auto pr-0.5">
+                      {usuariosPrueba.map((u) => {
+                        const usuarioNick = u.correo.split('@')[0];
+                        const esSeleccionado = cuenta === usuarioNick;
+                        return (
+                          <div
+                            key={u.id}
+                            className={`p-1 rounded border text-[10px] text-center transition-all ${
+                              esSeleccionado
+                                ? 'bg-[#003c58] text-white border-[#003c58] font-bold shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-sky-100 hover:border-sky-300'
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => seleccionarUsuarioRapido(u.id)}
+                              className="w-full text-center truncate block font-bold cursor-pointer"
+                              title={`${u.nombre} - Semestre ${u.semestreActual} (${u.rut})`}
+                            >
+                              {usuarioNick}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => seleccionarUsuarioPruebaDirecto(u)}
+                              className={`w-full text-[9px] mt-0.5 px-1 py-0.5 rounded cursor-pointer ${
+                                esSeleccionado ? 'bg-sky-400 text-slate-950 font-bold' : 'bg-slate-100 text-[#003c58] hover:bg-sky-200'
+                              }`}
+                              title="Ingresar directamente con este usuario"
+                            >
+                              Sem {u.semestreActual} ➔
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Banner Informativo de Concurrencia y Sesión Única */}

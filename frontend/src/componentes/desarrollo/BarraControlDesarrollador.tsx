@@ -6,12 +6,16 @@ import {
   ShieldAlert,
   Volume2,
   RotateCcw,
+  UserCheck,
 } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 import type { PasoFlujoTomaRamos } from '../../tipos';
 
 export const BarraControlDesarrollador: React.FC = () => {
   const {
+    estudiante,
+    usuariosPrueba,
+    seleccionarUsuarioPruebaDirecto,
     modoVisualizacion,
     establecerModoVisualizacion,
     pasoActual,
@@ -88,6 +92,26 @@ export const BarraControlDesarrollador: React.FC = () => {
               {paso.etiqueta}
             </button>
           ))}
+        </div>
+
+        {/* Selector Rápido de Alumno Alpha Tester */}
+        <div className="flex items-center gap-1.5 bg-slate-800 px-2 py-1 rounded-md border border-slate-700">
+          <UserCheck className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
+          <select
+            value={estudiante.correo}
+            onChange={(e) => {
+              const u = usuariosPrueba.find((user) => user.correo === e.target.value);
+              if (u) seleccionarUsuarioPruebaDirecto(u);
+            }}
+            className="bg-transparent text-[11px] font-semibold text-slate-200 outline-none cursor-pointer"
+            title="Cambiar rápidamente entre los 12 usuarios de prueba Alpha"
+          >
+            {usuariosPrueba.map((u) => (
+              <option key={u.id} value={u.correo} className="bg-slate-900 text-white">
+                {u.correo.split('@')[0]} (Sem. {u.semestreActual} - {u.nombre})
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Acciones Rápidas de Simulación */}

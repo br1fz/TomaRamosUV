@@ -296,14 +296,14 @@ export const InicioPortalAlumnosWeb: React.FC = () => {
 
           {/* Avatar de Usuario */}
           <div
-            className="mi-cuenta-foto"
-            title="Mi cuenta - Bruno Díaz"
+            className="mi-cuenta-foto cursor-pointer"
+            title={`Mi cuenta - ${estudiante.nombre}`}
             onClick={() => setMenuUsuarioAbierto(!menuUsuarioAbierto)}
           >
             <img
-              src="/portal_alumnos_files/avatar_bruno_diaz.jpg"
-              alt="Bruno Díaz"
-              className="w-full h-full object-cover"
+              src={estudiante.fotoPerfilUrl}
+              alt={estudiante.nombre}
+              className="w-full h-full object-cover rounded-full"
               onError={(e) => {
                 // Fallback si la imagen no carga
                 (e.target as HTMLImageElement).src = '/portal_alumnos_files/mis_datos.png';
@@ -316,14 +316,14 @@ export const InicioPortalAlumnosWeb: React.FC = () => {
             <div className="absolute right-0 top-12 w-64 bg-white rounded-lg shadow-xl border border-slate-200 py-3 px-4 z-50 animate-fadeIn text-slate-800">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                 <img
-                  src="/portal_alumnos_files/avatar_bruno_diaz.jpg"
-                  alt="Bruno Díaz"
+                  src={estudiante.fotoPerfilUrl}
+                  alt={estudiante.nombre}
                   className="w-10 h-10 rounded-full object-cover border border-slate-200"
                 />
                 <div>
-                  <h4 className="font-bold text-xs text-[#003c58] leading-tight">Bruno Díaz</h4>
-                  <p className="text-[11px] text-slate-500 font-mono">19926640-3</p>
-                  <p className="text-[10px] text-slate-400">bruno.diazf@estudiantes.uv.cl</p>
+                  <h4 className="font-bold text-xs text-[#003c58] leading-tight">{estudiante.nombre}</h4>
+                  <p className="text-[11px] text-slate-500 font-mono">{estudiante.rut}</p>
+                  <p className="text-[10px] text-slate-400">{estudiante.correo}</p>
                 </div>
               </div>
 
@@ -445,9 +445,9 @@ export const InicioPortalAlumnosWeb: React.FC = () => {
                 {/* Cabecera del Estudiante con Avatar */}
                 <div className="flex items-center gap-4">
                   <img
-                    src="/portal_alumnos_files/avatar_bruno_diaz.jpg"
-                    alt="Bruno Díaz"
-                    className="foto-usuario"
+                    src={estudiante.fotoPerfilUrl}
+                    alt={estudiante.nombre}
+                    className="foto-usuario rounded-full"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/portal_alumnos_files/mis_datos.png';
                     }}
