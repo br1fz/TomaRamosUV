@@ -38,6 +38,13 @@ export interface Asignatura {
   colorFondoBadge: string;
 }
 
+export interface RegistroHistorialRamo {
+  codigoRamo: string;
+  nombreRamo: string;
+  estado: 'INSCRITO' | 'APROBADO' | 'REPROBADO';
+  notaFinal?: number; // 1.0 a 7.0 (Regla UV: Aprobado >= 4.0 o Gracia = 3.9)
+}
+
 export interface Estudiante {
   nombre: string;
   rut: string;
@@ -50,6 +57,7 @@ export interface Estudiante {
   fotoPerfilUrl: string;
   estadoAcademico: 'REGULAR ACTIVO' | 'SUSPENDIDO';
   grupoPrioridad: string;
+  historialAcademico?: RegistroHistorialRamo[];
 }
 
 export type EstadoFilaVirtual =

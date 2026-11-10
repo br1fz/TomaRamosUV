@@ -23,3 +23,4 @@ export interface ResultadoAutenticacion {
   estudiante?: Estudiante;
   mensajeError?: string;
 }
+

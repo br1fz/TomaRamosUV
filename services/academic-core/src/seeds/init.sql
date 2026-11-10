@@ -1,159 +1,288 @@
--- SEED SQL: UNIVERSIDAD DE VALPARAÍSO - TOMA DE RAMOS MALLA 5125
--- INGENIERÍA CIVIL INFORMÁTICA (5.° SEMESTRE UV)
+-- ==============================================================================
+-- UNIVERSIDAD DE VALPARAÍSO - SISTEMA DE TOMA DE RAMOS (ACADEMIC CORE)
+-- ESQUEMA RELACIONAL (DDL), REGLAS DE NEGOCIO Y SEEDS INICIALES
+-- Compatible con PostgreSQL 16 (Supabase / Neon) y adaptable a SQLite
+-- ==============================================================================
 
--- 1. Tabla de Estudiantes
-CREATE TABLE IF NOT EXISTS students (
+-- Limpieza preventiva en caso de reinstalación completa
+DROP TABLE IF EXISTS inscripciones CASCADE;
+DROP TABLE IF EXISTS horarios_seccion CASCADE;
+DROP TABLE IF EXISTS secciones CASCADE;
+DROP TABLE IF EXISTS periodos_academicos CASCADE;
+DROP TABLE IF EXISTS prerrequisitos CASCADE;
+DROP TABLE IF EXISTS malla_ramos CASCADE;
+DROP TABLE IF EXISTS ramos CASCADE;
+DROP TABLE IF EXISTS profesores CASCADE;
+DROP TABLE IF EXISTS alumnos CASCADE;
+DROP TABLE IF EXISTS mallas CASCADE;
+DROP TABLE IF EXISTS carreras CASCADE;
+
+-- ------------------------------------------------------------------------------
+-- 1. CARRERAS Y MALLAS
+-- ------------------------------------------------------------------------------
+CREATE TABLE carreras (
     id SERIAL PRIMARY KEY,
-    rut VARCHAR(15) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    full_name VARCHAR(150) NOT NULL,
-    career_code VARCHAR(20) NOT NULL,
-    career_name VARCHAR(150) NOT NULL,
-    curriculum_plan VARCHAR(50) NOT NULL,
-    semester INT NOT NULL,
-    academic_status VARCHAR(50) NOT NULL DEFAULT 'REGULAR ACTIVO',
-    priority_group VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    codigo VARCHAR(20) UNIQUE NOT NULL,      -- Ej: '19085'
+    nombre VARCHAR(150) NOT NULL,            -- Ej: 'Ingeniería Civil Informática'
+    sede VARCHAR(100) DEFAULT 'Casa Central - Valparaíso'
 );
 
--- 2. Tabla de Asignaturas
-CREATE TABLE IF NOT EXISTS subjects (
+CREATE TABLE mallas (
     id SERIAL PRIMARY KEY,
-    code VARCHAR(15) UNIQUE NOT NULL,
-    name VARCHAR(150) NOT NULL,
-    credits INT NOT NULL,
-    semester INT NOT NULL,
-    prerequisites TEXT[] NOT NULL DEFAULT '{}',
-    color_hex VARCHAR(10) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    carrera_id INT REFERENCES carreras(id) ON DELETE CASCADE,
+    codigo_plan VARCHAR(50) NOT NULL,        -- Ej: 'Malla 5125 (Innovada SCT)'
+    anio_inicio INT NOT NULL,                -- Año en que entró en vigencia
+    anio_fin INT                             -- NULL si sigue activa
 );
 
--- 3. Tabla de Secciones y Vacantes
-CREATE TABLE IF NOT EXISTS sections (
+-- ------------------------------------------------------------------------------
+-- 2. ALUMNOS Y PROFESORES
+-- ------------------------------------------------------------------------------
+CREATE TABLE alumnos (
     id SERIAL PRIMARY KEY,
-    subject_code VARCHAR(15) REFERENCES subjects(code) ON DELETE CASCADE,
-    section_number INT NOT NULL,
-    professor VARCHAR(150) NOT NULL,
-    total_quota INT NOT NULL,
-    available_quota INT NOT NULL,
-    is_full BOOLEAN GENERATED ALWAYS AS (available_quota <= 0) STORED,
-    UNIQUE (subject_code, section_number)
+    rut VARCHAR(12) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,      -- Ej: 'prueba1@estudiantes.uv.cl'
+    password_hash VARCHAR(255) NOT NULL,     -- Hash bcrypt
+    malla_id INT REFERENCES mallas(id),
+    anio_ingreso INT NOT NULL,               -- Determina su avance
+    estado VARCHAR(30) DEFAULT 'ALUMNO REGULAR'
 );
 
--- 4. Tabla de Horarios por Sección
-CREATE TABLE IF NOT EXISTS section_schedules (
+CREATE TABLE profesores (
     id SERIAL PRIMARY KEY,
-    section_id INT REFERENCES sections(id) ON DELETE CASCADE,
-    day VARCHAR(20) NOT NULL,
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    block_index INT NOT NULL,
-    room VARCHAR(50) NOT NULL
+    rut VARCHAR(12) UNIQUE NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL
 );
 
--- 5. Tabla de Inscripciones Confirmadas (Transaccional Atómica)
-CREATE TABLE IF NOT EXISTS enrollments (
+-- ------------------------------------------------------------------------------
+-- 3. CATÁLOGO DE ASIGNATURAS Y MALLA CURRICULAR
+-- ------------------------------------------------------------------------------
+CREATE TABLE ramos (
     id SERIAL PRIMARY KEY,
-    student_rut VARCHAR(15) REFERENCES students(rut) ON DELETE CASCADE,
-    section_id INT REFERENCES sections(id) ON DELETE CASCADE,
-    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    verification_code VARCHAR(100) NOT NULL,
-    UNIQUE (student_rut, section_id)
+    codigo VARCHAR(20) UNIQUE NOT NULL,      -- Ej: 'INF-110'
+    nombre VARCHAR(150) NOT NULL,
+    creditos_sct INT NOT NULL DEFAULT 4
 );
 
--- 6. Tabla de Listas de Espera
-CREATE TABLE IF NOT EXISTS waitlists (
+CREATE TABLE malla_ramos (
     id SERIAL PRIMARY KEY,
-    student_rut VARCHAR(15) REFERENCES students(rut) ON DELETE CASCADE,
-    subject_code VARCHAR(15) REFERENCES subjects(code) ON DELETE CASCADE,
-    queue_order INT NOT NULL,
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (student_rut, subject_code)
+    malla_id INT REFERENCES mallas(id) ON DELETE CASCADE,
+    ramo_id INT REFERENCES ramos(id) ON DELETE CASCADE,
+    semestre_malla INT NOT NULL,             -- Semestre sugerido (1 al 10)
+    UNIQUE(malla_id, ramo_id)
 );
 
--- INSERCIÓN DE DATOS INICIALES (Malla 5125 UV)
+-- Prerrequisitos autorreferenciales entre ramos de la malla
+CREATE TABLE prerrequisitos (
+    malla_ramo_id INT REFERENCES malla_ramos(id) ON DELETE CASCADE,
+    ramo_prerrequisito_id INT REFERENCES ramos(id) ON DELETE CASCADE,
+    PRIMARY KEY (malla_ramo_id, ramo_prerrequisito_id)
+);
 
--- Estudiante de Prueba
-INSERT INTO students (rut, email, full_name, career_code, career_name, curriculum_plan, semester, priority_group)
-VALUES (
-    '20.123.456-7',
-    'estudiante.prueba@estudiantes.uv.cl',
-    'Estudiante de Prueba UV',
-    '19085',
-    'Ingeniería Civil Informática',
-    'Malla 5125 / Plan Común UV',
-    5,
-    'Grupo 1 (Prioridad Académica Alta)'
-) ON CONFLICT (rut) DO NOTHING;
+-- ------------------------------------------------------------------------------
+-- 4. PERIODOS ACADÉMICOS, SECCIONES Y HORARIOS
+-- ------------------------------------------------------------------------------
+CREATE TABLE periodos_academicos (
+    id SERIAL PRIMARY KEY,
+    anio INT NOT NULL,                       -- 2026
+    semestre INT NOT NULL,                   -- 1 o 2
+    activo BOOLEAN DEFAULT FALSE,
+    UNIQUE(anio, semestre)
+);
 
--- Asignaturas 5.° Semestre ICI UV
-INSERT INTO subjects (code, name, credits, semester, prerequisites, color_hex) VALUES
-('CIN 311', 'Estructuras de Datos', 5, 5, ARRAY['CIN 211'], '#0284c7'),
-('CIN 312', 'Arquitectura de Computadores', 4, 5, ARRAY['CIN 212'], '#7c3aed'),
-('CIN 313', 'Modelos de Base de Datos', 4, 5, ARRAY['CIN 211'], '#d97706'),
-('CIN 314', 'Fundamentos de Ingeniería de Software', 4, 5, ARRAY['PRO 121'], '#059669'),
-('FIS 311', 'Física Electromagnetismo', 5, 5, ARRAY['FIS 211', 'MAT 211'], '#0891b2')
-ON CONFLICT (code) DO NOTHING;
+CREATE TABLE secciones (
+    id SERIAL PRIMARY KEY,
+    periodo_id INT REFERENCES periodos_academicos(id) ON DELETE CASCADE,
+    ramo_id INT REFERENCES ramos(id) ON DELETE CASCADE,
+    numero_seccion INT NOT NULL,             -- Sección 1, 2, etc.
+    profesor_id INT REFERENCES profesores(id),
+    cupos_totales INT NOT NULL DEFAULT 35,
+    cupos_disponibles INT NOT NULL DEFAULT 35,
+    UNIQUE(periodo_id, ramo_id, numero_seccion)
+);
 
--- Secciones y Cupos Iniciales
--- CIN 311: Sec 1 (4/40 cupos), Sec 2 (15/40 cupos)
-INSERT INTO sections (subject_code, section_number, professor, total_quota, available_quota) VALUES
-('CIN 311', 1, 'Prof. Álvaro Morales', 40, 4),
-('CIN 311', 2, 'Prof. Gonzalo Rivera', 40, 15),
--- CIN 312: Sec 1 (12/35 cupos)
-('CIN 312', 1, 'Prof. Roberto Silva', 35, 12),
--- CIN 313: Sec 1 (0/40 cupos - AGOTADO)
-('CIN 313', 1, 'Prof. Claudia Castro', 40, 0),
--- CIN 314: Sec 1 (18/35 cupos)
-('CIN 314', 1, 'Prof. Patricia Valdés', 35, 18),
--- FIS 311: Sec 1 (10/30 cupos - TOPE CON CIN 311 SEC 1), Sec 2 (8/35 cupos)
-('FIS 311', 1, 'Prof. Manuel Herrera', 30, 10),
-('FIS 311', 2, 'Prof. Karla Contreras', 35, 8)
-ON CONFLICT (subject_code, section_number) DO NOTHING;
+CREATE TABLE horarios_seccion (
+    id SERIAL PRIMARY KEY,
+    seccion_id INT REFERENCES secciones(id) ON DELETE CASCADE,
+    dia_semana INT NOT NULL,                 -- 1 = Lunes, 2 = Martes, ..., 5 = Viernes
+    bloque_inicio TIME NOT NULL,             -- Ej: '08:30:00'
+    bloque_fin TIME NOT NULL,                -- Ej: '10:00:00'
+    sala VARCHAR(50) DEFAULT 'Lab Informática'
+);
 
--- Horarios por Sección
--- CIN 311 Sec 1: Lun 08:30-10:00 (Bloque 0), Mié 08:30-10:00 (Bloque 0)
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Lunes', '08:30', '10:00', 0, 'LAB-INFO 201' FROM sections WHERE subject_code = 'CIN 311' AND section_number = 1;
+-- ------------------------------------------------------------------------------
+-- 5. INSCRIPCIONES Y RENDIMIENTO HISTÓRICO
+-- ------------------------------------------------------------------------------
+CREATE TABLE inscripciones (
+    id SERIAL PRIMARY KEY,
+    alumno_id INT REFERENCES alumnos(id) ON DELETE CASCADE,
+    periodo_id INT REFERENCES periodos_academicos(id) ON DELETE CASCADE,
+    ramo_id INT REFERENCES ramos(id) ON DELETE CASCADE,       -- Desnormalizado para constraint única
+    seccion_id INT REFERENCES secciones(id) ON DELETE CASCADE,
+    estado VARCHAR(20) DEFAULT 'INSCRITO',  -- 'INSCRITO', 'APROBADO', 'REPROBADO'
+    nota_final NUMERIC(2,1),                -- Escala 1.0 a 7.0
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- Regla de negocio 1: un alumno solo puede tomar 1 vez un ramo por semestre
+    UNIQUE(alumno_id, periodo_id, ramo_id)
+);
 
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Miércoles', '08:30', '10:00', 0, 'LAB-INFO 201' FROM sections WHERE subject_code = 'CIN 311' AND section_number = 1;
+-- ------------------------------------------------------------------------------
+-- 6. REGLAS DE NEGOCIO: VISTAS Y FUNCIONES AUXILIARES
+-- ------------------------------------------------------------------------------
 
--- CIN 311 Sec 2: Mar 10:15-11:45 (Bloque 1), Jue 10:15-11:45 (Bloque 1)
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Martes', '10:15', '11:45', 1, 'SALA B-12' FROM sections WHERE subject_code = 'CIN 311' AND section_number = 2;
+-- Regla de Negocio 2: Control de Choques de Horario
+CREATE OR REPLACE VIEW v_choques_horario AS
+SELECT 
+    h1.seccion_id AS seccion_1_id,
+    h2.seccion_id AS seccion_2_id,
+    h1.dia_semana,
+    h1.bloque_inicio AS s1_inicio,
+    h1.bloque_fin AS s1_fin,
+    h2.bloque_inicio AS s2_inicio,
+    h2.bloque_fin AS s2_fin
+FROM horarios_seccion h1
+JOIN horarios_seccion h2 ON h1.dia_semana = h2.dia_semana 
+    AND h1.seccion_id < h2.seccion_id
+    AND h1.bloque_inicio < h2.bloque_fin 
+    AND h1.bloque_fin > h2.bloque_inicio;
 
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Jueves', '10:15', '11:45', 1, 'SALA B-12' FROM sections WHERE subject_code = 'CIN 311' AND section_number = 2;
+-- Regla de Negocio 3: Función de Validación de Prerrequisitos UV
+CREATE OR REPLACE FUNCTION fn_verificar_prerrequisitos_pendientes(
+    p_alumno_id INT,
+    p_ramo_a_inscribir_id INT
+)
+RETURNS TABLE (
+    ramo_prerrequisito_id INT,
+    codigo VARCHAR,
+    nombre VARCHAR
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT p.ramo_prerrequisito_id, r.codigo, r.nombre
+    FROM prerrequisitos p
+    JOIN malla_ramos mr ON p.malla_ramo_id = mr.id
+    JOIN ramos r ON p.ramo_prerrequisito_id = r.id
+    WHERE mr.malla_id = (SELECT malla_id FROM alumnos WHERE id = p_alumno_id)
+      AND mr.ramo_id = p_ramo_a_inscribir_id
+      AND p.ramo_prerrequisito_id NOT IN (
+          SELECT ins.ramo_id
+          FROM inscripciones ins
+          WHERE ins.alumno_id = p_alumno_id
+            AND ins.estado IN ('APROBADO', 'REPROBADO')
+            AND (ins.nota_final >= 4.0 OR ins.nota_final = 3.9)
+      );
+END;
+$$ LANGUAGE plpgsql;
 
--- CIN 312 Sec 1: Lun 10:15-11:45 (Bloque 1), Mié 10:15-11:45 (Bloque 1)
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Lunes', '10:15', '11:45', 1, 'SALA C-04' FROM sections WHERE subject_code = 'CIN 312' AND section_number = 1;
+-- ------------------------------------------------------------------------------
+-- 7. DATOS INICIALES (SEEDS) PARA TESTING
+-- ------------------------------------------------------------------------------
 
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Miércoles', '10:15', '11:45', 1, 'SALA C-04' FROM sections WHERE subject_code = 'CIN 312' AND section_number = 1;
+-- Período Activo
+INSERT INTO periodos_academicos (id, anio, semestre, activo) 
+VALUES (1, 2026, 1, TRUE)
+ON CONFLICT (anio, semestre) DO UPDATE SET activo = TRUE;
 
--- CIN 313 Sec 1: Mar 08:30-10:00 (Bloque 0), Jue 08:30-10:00 (Bloque 0)
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Martes', '08:30', '10:00', 0, 'LAB-BD 103' FROM sections WHERE subject_code = 'CIN 313' AND section_number = 1;
+-- Carrera y Malla
+INSERT INTO carreras (id, codigo, nombre) 
+VALUES (1, '19085', 'Ingeniería Civil Informática')
+ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Jueves', '08:30', '10:00', 0, 'LAB-BD 103' FROM sections WHERE subject_code = 'CIN 313' AND section_number = 1;
+INSERT INTO mallas (id, carrera_id, codigo_plan, anio_inicio) 
+VALUES (1, 1, 'Malla 5125 (Innovada SCT)', 2020)
+ON CONFLICT (id) DO NOTHING;
 
--- CIN 314 Sec 1: Vie 08:30-10:00 (Bloque 0), Vie 10:15-11:45 (Bloque 1)
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Viernes', '08:30', '10:00', 0, 'AUD-ING 1' FROM sections WHERE subject_code = 'CIN 314' AND section_number = 1;
+-- Profesores
+INSERT INTO profesores (id, rut, nombre, email) VALUES
+(1, '11.222.333-4', 'Felipe Moncada', 'felipe.moncada@uv.cl'),
+(2, '12.333.444-5', 'Nicolás Cáceres', 'nicolas.caceres@uv.cl'),
+(3, '13.444.555-6', 'Bastián Rivas', 'bastian.rivas@uv.cl')
+ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Viernes', '10:15', '11:45', 1, 'AUD-ING 1' FROM sections WHERE subject_code = 'CIN 314' AND section_number = 1;
+-- Ramos base
+INSERT INTO ramos (id, codigo, nombre, creditos_sct) VALUES
+(1, 'INF-110', 'Introducción a la Programación', 5),
+(2, 'MAT-010', 'Cálculo Diferencial', 6),
+(3, 'INF-210', 'Estructuras de Datos', 5),
+(4, 'INF-220', 'Bases de Datos', 5),
+(5, 'INF-310', 'Sistemas Operativos', 5)
+ON CONFLICT (id) DO NOTHING;
 
--- FIS 311 Sec 1: Lun 08:30-10:00 (Bloque 0) -> TOPE DIRECTO CON CIN 311 Sec 1
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Lunes', '08:30', '10:00', 0, 'SALA F-02' FROM sections WHERE subject_code = 'FIS 311' AND section_number = 1;
+-- Configuración de Malla (Semestres 1, 2 y 3)
+INSERT INTO malla_ramos (id, malla_id, ramo_id, semestre_malla) VALUES
+(1, 1, 1, 1), -- Intro Prog (Semestre 1)
+(2, 1, 2, 1), -- Cálculo (Semestre 1)
+(3, 1, 3, 2), -- Estructuras de Datos (Semestre 2)
+(4, 1, 4, 2), -- Bases de Datos (Semestre 2)
+(5, 1, 5, 3)  -- Sistemas Operativos (Semestre 3)
+ON CONFLICT (id) DO NOTHING;
 
--- FIS 311 Sec 2: Mar 14:00-15:30 (Bloque 3), Mar 15:45-17:15 (Bloque 4)
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Martes', '14:00', '15:30', 3, 'LAB-FIS 2' FROM sections WHERE subject_code = 'FIS 311' AND section_number = 2;
+-- Prerrequisitos:
+INSERT INTO prerrequisitos (malla_ramo_id, ramo_prerrequisito_id) VALUES (3, 1)
+ON CONFLICT (malla_ramo_id, ramo_prerrequisito_id) DO NOTHING;
 
-INSERT INTO section_schedules (section_id, day, start_time, end_time, block_index, room)
-SELECT id, 'Martes', '15:45', '17:15', 4, 'LAB-FIS 2' FROM sections WHERE subject_code = 'FIS 311' AND section_number = 2;
+INSERT INTO prerrequisitos (malla_ramo_id, ramo_prerrequisito_id) VALUES (5, 3)
+ON CONFLICT (malla_ramo_id, ramo_prerrequisito_id) DO NOTHING;
+
+-- Secciones para 2026-1
+INSERT INTO secciones (id, periodo_id, ramo_id, numero_seccion, profesor_id, cupos_totales, cupos_disponibles) VALUES
+(1, 1, 3, 1, 1, 30, 25), -- Estructuras de Datos - Sec 1
+(2, 1, 3, 2, 2, 30, 28), -- Estructuras de Datos - Sec 2
+(3, 1, 4, 1, 3, 35, 30), -- Bases de Datos - Sec 1
+(4, 1, 5, 1, 1, 25, 20)  -- Sistemas Operativos - Sec 1
+ON CONFLICT (id) DO NOTHING;
+
+-- Horarios (Lunes y Miércoles en bloques estándar)
+INSERT INTO horarios_seccion (id, seccion_id, dia_semana, bloque_inicio, bloque_fin, sala) VALUES
+(1, 1, 1, '08:30:00', '10:00:00', 'Lab 1'),     -- Sec 1 ED: Lun 08:30-10:00
+(2, 1, 3, '08:30:00', '10:00:00', 'Lab 1'),     -- Sec 1 ED: Mie 08:30-10:00
+(3, 2, 1, '10:15:00', '11:45:00', 'Lab 2'),     -- Sec 2 ED: Lun 10:15-11:45
+(4, 3, 2, '08:30:00', '10:00:00', 'Sala B3'),    -- Sec 1 BD: Mar 08:30-10:00
+(5, 4, 4, '14:00:00', '15:30:00', 'Lab Redes')  -- Sec 1 SO: Jue 14:00-15:30
+ON CONFLICT (id) DO NOTHING;
+
+-- 12 Alumnos de Prueba (Password por defecto: 'PruebaUV.2026!')
+INSERT INTO alumnos (id, rut, nombre, email, password_hash, malla_id, anio_ingreso) VALUES
+(1,  '21.111.001-1', 'Estudiante Alpha 1',  'prueba1@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
+(2,  '21.111.002-2', 'Estudiante Alpha 2',  'prueba2@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
+(3,  '21.111.003-3', 'Estudiante Alpha 3',  'prueba3@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
+(4,  '21.111.004-4', 'Estudiante Alpha 4',  'prueba4@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
+(5,  '21.111.005-5', 'Estudiante Alpha 5',  'prueba5@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
+(6,  '21.111.006-6', 'Estudiante Alpha 6',  'prueba6@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
+(7,  '21.111.007-7', 'Estudiante Alpha 7',  'prueba7@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
+(8,  '21.111.008-8', 'Estudiante Alpha 8',  'prueba8@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
+(9,  '21.111.009-9', 'Estudiante Alpha 9',  'prueba9@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
+(10, '21.111.010-0', 'Estudiante Alpha 10', 'prueba10@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
+(11, '21.111.011-1', 'Estudiante Alpha 11', 'prueba11@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
+(12, '21.111.012-2', 'Estudiante Alpha 12', 'prueba12@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023)
+ON CONFLICT (id) DO NOTHING;
+
+-- Historial para probar prerrequisitos:
+-- Alumno 1 aprobó Introducción a la Programación con 5.5 (Habilitado para Estructuras de Datos)
+INSERT INTO inscripciones (id, alumno_id, periodo_id, ramo_id, seccion_id, estado, nota_final)
+VALUES (1, 1, 1, 1, 1, 'APROBADO', 5.5)
+ON CONFLICT (id) DO NOTHING;
+
+-- Alumno 2 reprobó Introducción a la Programación con 3.9 (Habilitado por regla especial 3.9)
+INSERT INTO inscripciones (id, alumno_id, periodo_id, ramo_id, seccion_id, estado, nota_final)
+VALUES (2, 2, 1, 1, 1, 'REPROBADO', 3.9)
+ON CONFLICT (id) DO NOTHING;
+
+-- Alumno 3 reprobó Introducción a la Programación con 3.5 (NO habilitado para Estructuras de Datos)
+INSERT INTO inscripciones (id, alumno_id, periodo_id, ramo_id, seccion_id, estado, nota_final)
+VALUES (3, 3, 1, 1, 1, 'REPROBADO', 3.5)
+ON CONFLICT (id) DO NOTHING;
+
+-- Reiniciar secuencias de IDs para futuros inserts
+SELECT setval('carreras_id_seq', (SELECT COALESCE(MAX(id), 1) FROM carreras));
+SELECT setval('mallas_id_seq', (SELECT COALESCE(MAX(id), 1) FROM mallas));
+SELECT setval('alumnos_id_seq', (SELECT COALESCE(MAX(id), 1) FROM alumnos));
+SELECT setval('profesores_id_seq', (SELECT COALESCE(MAX(id), 1) FROM profesores));
+SELECT setval('ramos_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ramos));
+SELECT setval('malla_ramos_id_seq', (SELECT COALESCE(MAX(id), 1) FROM malla_ramos));
+SELECT setval('periodos_academicos_id_seq', (SELECT COALESCE(MAX(id), 1) FROM periodos_academicos));
+SELECT setval('secciones_id_seq', (SELECT COALESCE(MAX(id), 1) FROM secciones));
+SELECT setval('horarios_seccion_id_seq', (SELECT COALESCE(MAX(id), 1) FROM horarios_seccion));
+SELECT setval('inscripciones_id_seq', (SELECT COALESCE(MAX(id), 1) FROM inscripciones));

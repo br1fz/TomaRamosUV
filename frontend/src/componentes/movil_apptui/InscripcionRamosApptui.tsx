@@ -12,8 +12,11 @@ import {
   ChevronDown,
   Info,
   Trash2,
+  Lock,
+  Sparkles,
 } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
+import { evaluarPrerrequisitosEstudiante } from '../../utilidades';
 import { BLOQUES_HORARIOS_OFICIALES, DIAS_DE_LA_SEMANA } from '../../datos';
 import type { DiaSemana, Asignatura } from '../../tipos';
 
@@ -174,6 +177,7 @@ export const InscripcionRamosApptui: React.FC = () => {
               );
               const turnoListaEspera = asignaturasEnListaEspera[asig.codigo];
               const estaAbierto = acordeonAbierto[asig.codigo] ?? false;
+              const evalPrerreq = evaluarPrerrequisitosEstudiante(asig, estudiante);
 
               return (
                 <div
@@ -181,6 +185,8 @@ export const InscripcionRamosApptui: React.FC = () => {
                   className={`bg-[#20232A] border rounded-2xl overflow-hidden transition-all shadow-md ${
                     inscripcionExistente
                       ? 'border-[#31C4D7] ring-1 ring-[#31C4D7]/50'
+                      : !evalPrerreq.habilitado
+                      ? 'border-amber-600/40 opacity-90'
                       : 'border-[#2D323E] hover:border-slate-500'
                   }`}
                 >
@@ -200,12 +206,26 @@ export const InscripcionRamosApptui: React.FC = () => {
                         <h4 className="font-extrabold text-xs text-white truncate leading-tight">
                           {asig.nombre}
                         </h4>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5 flex-wrap">
                           <span className="text-sky-300 font-semibold">Sem. {asig.semestre}</span>
                           <span>•</span>
                           <span>{asig.creditosSCT} SCT</span>
                           <span>•</span>
-                          <span className="text-emerald-400">✓ Habilitada</span>
+                          {evalPrerreq.habilitado ? (
+                            evalPrerreq.esReglaEspecial39 ? (
+                              <span className="text-amber-400 font-bold flex items-center gap-0.5">
+                                <Sparkles className="w-2.5 h-2.5" />
+                                <span>★ Regla 3.9</span>
+                              </span>
+                            ) : (
+                              <span className="text-emerald-400 font-semibold">✓ Habilitada</span>
+                            )
+                          ) : (
+                            <span className="text-red-400 font-semibold flex items-center gap-0.5" title={evalPrerreq.motivo}>
+                              <Lock className="w-2.5 h-2.5" />
+                              <span>Pendiente ({evalPrerreq.notaObtenida ?? 's/n'} &lt; 3.9)</span>
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -342,10 +362,19 @@ export const InscripcionRamosApptui: React.FC = () => {
                                     <span>Anotarse en Lista de Espera</span>
                                   </button>
                                 )
+                              ) : !evalPrerreq.habilitado ? (
+                                <button
+                                  onClick={() => seleccionarSeccion(asig, sec)}
+                                  className="w-full py-2 bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-700/60 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                                  title={evalPrerreq.motivo}
+                                >
+                                  <Lock className="w-3.5 h-3.5 text-red-400" />
+                                  <span>Prerrequisito Pendiente</span>
+                                </button>
                               ) : (
                                 <button
                                   onClick={() => seleccionarSeccion(asig, sec)}
-                                  className="w-full py-2 bg-[#20232A] hover:bg-[#282d37] text-white hover:text-[#31C4D7] border border-[#2D323E] hover:border-[#31C4D7] font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                                  className="w-full py-2 bg-[#20232A] hover:bg-[#282d37] text-white hover:text-[#31C4D7] border border-[#2D323E] hover:border-[#31C4D7] font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                                 >
                                   <span>Inscribir Sección {sec.numeroSeccion}</span>
                                 </button>

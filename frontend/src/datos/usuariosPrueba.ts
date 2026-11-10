@@ -31,49 +31,73 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     id: 'usr_01',
     correo: 'prueba1@estudiantes.uv.cl',
     passwordHash: HASH_PASSWORD_POR_DEFECTO,
-    nombre: 'Estudiante Prueba 1 (Matías Sepúlveda Soto)',
+    nombre: 'Estudiante Alpha 1 (Matías Sepúlveda)',
     rut: '20.123.456-5',
     carrera: 'Ingeniería Civil Informática',
     codigoCarrera: '19085 - Casa Central - Diurno',
     sedeCampus: 'Facultad de Ingeniería - Av. Gran Bretaña 1091, Playa Ancha',
-    planCurricular: 'Malla 5125 / Plan Común UV',
-    semestreActual: 1,
+    planCurricular: 'Malla 5125 (Innovada SCT)',
+    semestreActual: 2,
     fotoPerfilUrl: generarAvatarSVG('MS', '#004A77'),
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 1 (Prioridad Alta - Rango 1)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.5,
+      },
+    ],
   },
   {
     id: 'usr_02',
     correo: 'prueba2@estudiantes.uv.cl',
     passwordHash: HASH_PASSWORD_POR_DEFECTO,
-    nombre: 'Estudiante Prueba 2 (Valentina Morales Castro)',
+    nombre: 'Estudiante Alpha 2 (Valentina Morales)',
     rut: '20.234.567-0',
     carrera: 'Ingeniería Civil Informática',
     codigoCarrera: '19085 - Casa Central - Diurno',
     sedeCampus: 'Facultad de Ingeniería - Av. Gran Bretaña 1091, Playa Ancha',
-    planCurricular: 'Malla 5125 / Plan Común UV',
+    planCurricular: 'Malla 5125 (Innovada SCT)',
     semestreActual: 2,
     fotoPerfilUrl: generarAvatarSVG('VM', '#0d6e7a'),
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 1 (Prioridad Alta - Rango 1)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'REPROBADO',
+        notaFinal: 3.9,
+      },
+    ],
   },
   {
     id: 'usr_03',
     correo: 'prueba3@estudiantes.uv.cl',
     passwordHash: HASH_PASSWORD_POR_DEFECTO,
-    nombre: 'Estudiante Prueba 3 (Joaquín Silva Navarro)',
+    nombre: 'Estudiante Alpha 3 (Joaquín Silva)',
     rut: '20.345.678-6',
     carrera: 'Ingeniería Civil Informática',
     codigoCarrera: '19085 - Casa Central - Diurno',
     sedeCampus: 'Facultad de Ingeniería - Av. Gran Bretaña 1091, Playa Ancha',
-    planCurricular: 'Malla 5125 / Plan Común UV',
-    semestreActual: 3,
+    planCurricular: 'Malla 5125 (Innovada SCT)',
+    semestreActual: 2,
     fotoPerfilUrl: generarAvatarSVG('JS', '#0369a1'),
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 2 (Prioridad Regular - Rango 2)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'REPROBADO',
+        notaFinal: 3.5,
+      },
+    ],
   },
   {
     id: 'usr_04',
@@ -90,6 +114,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 2 (Prioridad Regular - Rango 2)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
   {
     id: 'usr_05',
@@ -106,6 +144,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 1 (Prioridad Alta - Rango 1)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
   {
     id: 'usr_06',
@@ -122,6 +174,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 1 (Prioridad Alta - Rango 1)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
   {
     id: 'usr_07',
@@ -138,6 +204,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 2 (Prioridad Regular - Rango 2)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
   {
     id: 'usr_08',
@@ -154,6 +234,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 1 (Prioridad Alta - Rango 1)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
   {
     id: 'usr_09',
@@ -170,6 +264,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 1 (Prioridad Alta - Rango 1)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
   {
     id: 'usr_10',
@@ -186,6 +294,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 1 (Prioridad Alta - Rango 1)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
   {
     id: 'usr_11',
@@ -202,6 +324,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 3 (Prioridad Flexible - Rango 3)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
   {
     id: 'usr_12',
@@ -218,6 +354,20 @@ export const USUARIOS_PRUEBA_ALPHA: UsuarioPrueba[] = [
     estadoAcademico: 'REGULAR ACTIVO',
     grupoPrioridad: 'Grupo 1 (Prioridad Alta - Rango 1)',
     rol: 'ESTUDIANTE',
+    historialAcademico: [
+      {
+        codigoRamo: 'INF-110',
+        nombreRamo: 'Introducción a la Programación',
+        estado: 'APROBADO',
+        notaFinal: 5.8,
+      },
+      {
+        codigoRamo: 'INF-210',
+        nombreRamo: 'Estructuras de Datos',
+        estado: 'APROBADO',
+        notaFinal: 5.2,
+      },
+    ],
   },
 ];
 

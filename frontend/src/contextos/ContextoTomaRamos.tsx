@@ -25,6 +25,7 @@ import {
   limpiarSesion,
 } from '../servicios';
 import { detectarTopeHorario } from '../utilidades/detectorTopesHorarios';
+import { evaluarPrerrequisitosEstudiante } from '../utilidades/validadorPrerrequisitos';
 import {
   reproducirArpegioLlegadaTurno,
   reproducirAlertaTopeHorario,
@@ -387,7 +388,18 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
       return false;
     }
 
-    // 2. Verificación preventiva de topes de horario
+    // 2. Verificación de Prerrequisitos (Regla de negocio UV: >= 4.0 o gracia = 3.9)
+    const evaluacionPrerreq = evaluarPrerrequisitosEstudiante(asignatura, estudiante);
+    if (!evaluacionPrerreq.habilitado) {
+      establecerAlertaCurricular({
+        tipo: 'INFO',
+        titulo: 'Prerrequisito Institucional Pendiente',
+        mensaje: evaluacionPrerreq.motivo,
+      });
+      return false;
+    }
+
+    // 3. Verificación preventiva de topes de horario (Regla de Choque en Horario)
     const conflicto = detectarTopeHorario(asignatura, seccion, asignaturasInscritas);
     if (conflicto) {
       establecerConflictoActivo(conflicto);

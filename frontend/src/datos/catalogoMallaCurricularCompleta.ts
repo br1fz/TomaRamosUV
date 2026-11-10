@@ -6,6 +6,198 @@ import type { Asignatura } from '../tipos';
  * Extraído y estructurado desde los documentos oficiales de acreditación.
  */
 export const CATALOGO_MALLA_COMPLETA: Asignatura[] = [
+  // =========================================================================
+  // Asignaturas Base del Modelo Relacional / Seeds de Testing (Semestres 1 a 3)
+  // Permiten probar el circuito completo de Prerrequisitos y Regla Especial 3.9
+  // =========================================================================
+  {
+    codigo: 'INF-110',
+    nombre: 'Introducción a la Programación',
+    creditosSCT: 5,
+    semestre: 1,
+    prerrequisitos: ['Sin prerrequisitos'],
+    estadoPrerrequisitos: 'APROBADO',
+    colorDistintivo: '#0284c7',
+    colorTexto: '#ffffff',
+    colorFondoBadge: '#e0f2fe',
+    secciones: [
+      {
+        id: 'INF110-1',
+        numeroSeccion: 1,
+        profesor: 'Prof. Felipe Moncada',
+        cuposTotales: 35,
+        cuposDisponibles: 30,
+        estaLlena: false,
+        horario: [
+          {
+            dia: 'Lunes',
+            horaInicio: '08:30',
+            horaFin: '10:00',
+            indiceBloque: 0,
+            sala: 'Lab 1',
+          },
+          {
+            dia: 'Miércoles',
+            horaInicio: '08:30',
+            horaFin: '10:00',
+            indiceBloque: 0,
+            sala: 'Lab 1',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: 'MAT-010',
+    nombre: 'Cálculo Diferencial',
+    creditosSCT: 6,
+    semestre: 1,
+    prerrequisitos: ['Sin prerrequisitos'],
+    estadoPrerrequisitos: 'APROBADO',
+    colorDistintivo: '#0369a1',
+    colorTexto: '#ffffff',
+    colorFondoBadge: '#e0f2fe',
+    secciones: [
+      {
+        id: 'MAT010-1',
+        numeroSeccion: 1,
+        profesor: 'Prof. Roberto Silva',
+        cuposTotales: 40,
+        cuposDisponibles: 35,
+        estaLlena: false,
+        horario: [
+          {
+            dia: 'Martes',
+            horaInicio: '10:15',
+            horaFin: '11:45',
+            indiceBloque: 1,
+            sala: 'Aula 201',
+          },
+          {
+            dia: 'Jueves',
+            horaInicio: '10:15',
+            horaFin: '11:45',
+            indiceBloque: 1,
+            sala: 'Aula 201',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: 'INF-210',
+    nombre: 'Estructuras de Datos',
+    creditosSCT: 5,
+    semestre: 2,
+    prerrequisitos: ['INF-110'],
+    estadoPrerrequisitos: 'PENDIENTE',
+    colorDistintivo: '#2563eb',
+    colorTexto: '#ffffff',
+    colorFondoBadge: '#dbeafe',
+    secciones: [
+      {
+        id: 'INF210-1',
+        numeroSeccion: 1,
+        profesor: 'Prof. Felipe Moncada',
+        cuposTotales: 30,
+        cuposDisponibles: 25,
+        estaLlena: false,
+        horario: [
+          {
+            dia: 'Lunes',
+            horaInicio: '08:30',
+            horaFin: '10:00',
+            indiceBloque: 0,
+            sala: 'Lab 1',
+          },
+          {
+            dia: 'Miércoles',
+            horaInicio: '08:30',
+            horaFin: '10:00',
+            indiceBloque: 0,
+            sala: 'Lab 1',
+          },
+        ],
+      },
+      {
+        id: 'INF210-2',
+        numeroSeccion: 2,
+        profesor: 'Prof. Nicolás Cáceres',
+        cuposTotales: 30,
+        cuposDisponibles: 28,
+        estaLlena: false,
+        horario: [
+          {
+            dia: 'Lunes',
+            horaInicio: '10:15',
+            horaFin: '11:45',
+            indiceBloque: 1,
+            sala: 'Lab 2',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: 'INF-220',
+    nombre: 'Bases de Datos',
+    creditosSCT: 5,
+    semestre: 2,
+    prerrequisitos: ['INF-110'],
+    estadoPrerrequisitos: 'PENDIENTE',
+    colorDistintivo: '#0d9488',
+    colorTexto: '#ffffff',
+    colorFondoBadge: '#ccfbf1',
+    secciones: [
+      {
+        id: 'INF220-1',
+        numeroSeccion: 1,
+        profesor: 'Prof. Bastián Rivas',
+        cuposTotales: 35,
+        cuposDisponibles: 30,
+        estaLlena: false,
+        horario: [
+          {
+            dia: 'Martes',
+            horaInicio: '08:30',
+            horaFin: '10:00',
+            indiceBloque: 0,
+            sala: 'Sala B3',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    codigo: 'INF-310',
+    nombre: 'Sistemas Operativos',
+    creditosSCT: 5,
+    semestre: 3,
+    prerrequisitos: ['INF-210'],
+    estadoPrerrequisitos: 'PENDIENTE',
+    colorDistintivo: '#7c3aed',
+    colorTexto: '#ffffff',
+    colorFondoBadge: '#f3e8ff',
+    secciones: [
+      {
+        id: 'INF310-1',
+        numeroSeccion: 1,
+        profesor: 'Prof. Felipe Moncada',
+        cuposTotales: 25,
+        cuposDisponibles: 20,
+        estaLlena: false,
+        horario: [
+          {
+            dia: 'Jueves',
+            horaInicio: '14:00',
+            horaFin: '15:30',
+            indiceBloque: 3,
+            sala: 'Lab Redes',
+          },
+        ],
+      },
+    ],
+  },
   {
     codigo: 'MAT 111',
     nombre: 'Fundamentos de Matemáticas',
