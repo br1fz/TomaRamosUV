@@ -245,18 +245,18 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 12 Alumnos de Prueba (Password por defecto: 'PruebaUV.2026!')
 INSERT INTO alumnos (id, rut, nombre, email, password_hash, malla_id, anio_ingreso) VALUES
-(1,  '21.111.001-1', 'Estudiante Alpha 1',  'prueba1@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
-(2,  '21.111.002-2', 'Estudiante Alpha 2',  'prueba2@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
-(3,  '21.111.003-3', 'Estudiante Alpha 3',  'prueba3@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
-(4,  '21.111.004-4', 'Estudiante Alpha 4',  'prueba4@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
-(5,  '21.111.005-5', 'Estudiante Alpha 5',  'prueba5@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
-(6,  '21.111.006-6', 'Estudiante Alpha 6',  'prueba6@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
-(7,  '21.111.007-7', 'Estudiante Alpha 7',  'prueba7@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
-(8,  '21.111.008-8', 'Estudiante Alpha 8',  'prueba8@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
-(9,  '21.111.009-9', 'Estudiante Alpha 9',  'prueba9@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
-(10, '21.111.010-0', 'Estudiante Alpha 10', 'prueba10@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
-(11, '21.111.011-1', 'Estudiante Alpha 11', 'prueba11@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
-(12, '21.111.012-2', 'Estudiante Alpha 12', 'prueba12@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023)
+(1,  '21.111.001-1', 'Estudiante Prueba 1',  'prueba1@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
+(2,  '21.111.002-2', 'Estudiante Prueba 2',  'prueba2@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
+(3,  '21.111.003-3', 'Estudiante Prueba 3',  'prueba3@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
+(4,  '21.111.004-4', 'Estudiante Prueba 4',  'prueba4@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2025),
+(5,  '21.111.005-5', 'Estudiante Prueba 5',  'prueba5@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
+(6,  '21.111.006-6', 'Estudiante Prueba 6',  'prueba6@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
+(7,  '21.111.007-7', 'Estudiante Prueba 7',  'prueba7@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
+(8,  '21.111.008-8', 'Estudiante Prueba 8',  'prueba8@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2024),
+(9,  '21.111.009-9', 'Estudiante Prueba 9',  'prueba9@estudiantes.uv.cl',  '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
+(10, '21.111.010-0', 'Estudiante Prueba 10', 'prueba10@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
+(11, '21.111.011-1', 'Estudiante Prueba 11', 'prueba11@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023),
+(12, '21.111.012-2', 'Estudiante Prueba 12', 'prueba12@estudiantes.uv.cl', '$2b$10$f0htJg3hg7O74CSTs9im..iYJBAY0N/eaezBfRKPuncEUgtTB.2j.', 1, 2023)
 ON CONFLICT (id) DO NOTHING;
 
 -- Historial para probar prerrequisitos:

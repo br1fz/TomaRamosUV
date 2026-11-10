@@ -91,3 +91,4 @@ export function evaluarPrerrequisitosEstudiante(
     esReglaEspecial39: false,
   };
 }
+
