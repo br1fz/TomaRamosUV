@@ -5,10 +5,13 @@ import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 type PerfilUsuario = 'PREGRADO' | 'FUNCIONARIOS' | 'POSTGRADO' | 'ALUMNI';
 
 export const PaginaEntradaPortalUV: React.FC = () => {
-  const { iniciarSesionConCredenciales, seleccionarUsuarioPruebaDirecto, usuariosPrueba } = usarTomaRamos();
+  const { iniciarSesionConCredenciales, usuariosPrueba, estudiante } = usarTomaRamos();
 
   const [perfilSeleccionado, setPerfilSeleccionado] = useState<PerfilUsuario>('PREGRADO');
-  const [cuenta, setCuenta] = useState<string>('prueba1');
+  const [cuenta, setCuenta] = useState<string>(() =>
+    estudiante?.correo ? estudiante.correo.split('@')[0] : 'prueba1'
+  );
+  const [prevCorreo, setPrevCorreo] = useState(estudiante?.correo);
   const [password, setPassword] = useState<string>('PruebaUV.2026!');
   const [mostrarPassword, setMostrarPassword] = useState<boolean>(false);
   const [cargando, setCargando] = useState<boolean>(false);
@@ -16,6 +19,14 @@ export const PaginaEntradaPortalUV: React.FC = () => {
   const [mostrarPanelAlpha, setMostrarPanelAlpha] = useState<boolean>(true);
   const [modalAyudaAbierto, setModalAyudaAbierto] = useState<boolean>(false);
   const [modalAccesibilidadAbierto, setModalAccesibilidadAbierto] = useState<boolean>(false);
+
+  // Sincronizar cuenta si cambia el alumno activo desde la barra de desarrollo
+  if (prevCorreo !== estudiante?.correo) {
+    setPrevCorreo(estudiante?.correo);
+    setCuenta(estudiante?.correo ? estudiante.correo.split('@')[0] : 'prueba1');
+    setPassword('PruebaUV.2026!');
+    setErrorLogin(null);
+  }
 
   // Dominio de correo según el perfil seleccionado
   const obtenerDominio = () => {
@@ -339,7 +350,7 @@ export const PaginaEntradaPortalUV: React.FC = () => {
                 {mostrarPanelAlpha && (
                   <div className="space-y-2 pt-1 border-t border-sky-100">
                     <p className="text-[10px] text-slate-600 leading-tight">
-                      Contraseña bcrypt común: <strong className="text-slate-800 font-mono">PruebaUV.2026!</strong>. Haz clic para seleccionar o ingresar directo:
+                      Contraseña bcrypt común: <strong className="text-slate-800 font-mono">PruebaUV.2026!</strong>. Haz clic para seleccionar y rellenar:
                     </p>
                     <div className="grid grid-cols-3 gap-1 max-h-36 overflow-y-auto pr-0.5">
                       {usuariosPrueba.map((u) => {
@@ -364,13 +375,13 @@ export const PaginaEntradaPortalUV: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => seleccionarUsuarioPruebaDirecto(u)}
+                              onClick={() => seleccionarUsuarioRapido(u.id)}
                               className={`w-full text-[9px] mt-0.5 px-1 py-0.5 rounded cursor-pointer ${
                                 esSeleccionado ? 'bg-sky-400 text-slate-950 font-bold' : 'bg-slate-100 text-[#003c58] hover:bg-sky-200'
                               }`}
-                              title="Ingresar directamente con este usuario"
+                              title="Cargar credenciales de este usuario"
                             >
-                              Sem {u.semestreActual} ➔
+                              Sem {u.semestreActual}
                             </button>
                           </div>
                         );

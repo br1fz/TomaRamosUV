@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
-import { Printer, CheckCircle2, ShieldCheck, ArrowLeft, Calendar, User, FileText, AlertCircle } from 'lucide-react';
+import { Printer, CheckCircle2, ShieldCheck, ArrowLeft, Calendar, User, FileText, AlertCircle, Home } from 'lucide-react';
 import { usarTomaRamos } from '../../contextos/ContextoTomaRamos';
 import { ASIGNATURAS_INICIALES_5TO_SEMESTRE } from '../../datos';
 import type { ComprobanteOficialInscripcion as ComprobanteTipo } from '../../tipos';
@@ -80,13 +80,22 @@ export const ComprobanteOficialInscripcion: React.FC = () => {
     <div className="max-w-4xl mx-auto p-4 sm:p-6 animate-fadeIn">
       {/* Barra Superior de Acciones (oculta al imprimir) */}
       <div className="print:hidden mb-6 flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-        <button
-          onClick={() => establecerPasoActual('SELECCION_RAMOS')}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Volver a la selección
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => establecerPasoActual('HORARIO_ARMADO')}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Volver a Horario
+          </button>
+          <button
+            onClick={() => establecerPasoActual('PORTAL_ALUMNOS')}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-sky-800 bg-sky-50 hover:bg-sky-100 rounded-xl transition-all cursor-pointer"
+          >
+            <Home className="w-4 h-4" />
+            Portal Académico
+          </button>
+        </div>
 
         <div className="flex items-center gap-3">
           <button

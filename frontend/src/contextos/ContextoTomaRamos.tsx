@@ -341,7 +341,9 @@ export const ProveedorTomaRamos: React.FC<{ children: React.ReactNode }> = ({ ch
     establecerEstudiante(targetUser);
     establecerFiltroSemestre(targetUser.semestreActual);
     canalSesionUnica.notificarNuevoInicioSesion(targetUser.rut);
-    establecerPasoActual('PORTAL_ALUMNOS');
+    if (pasoActual !== 'INICIO_PORTAL') {
+      establecerPasoActual('PORTAL_ALUMNOS');
+    }
   };
 
   const entrarAFilaVirtual = () => {

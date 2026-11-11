@@ -125,19 +125,17 @@ El prototipo implementa el recorrido integral de punta a punta, estructurado en 
 
 ---
 
-## 🎛️ Barra de Control de Entorno (Herramientas para Testers)
+## 🎛️ Barra Superior de Control de Entorno (Herramientas para Testers)
 
-En la parte superior de la pantalla se encuentra una barra fija con utilidades para facilitar la evaluación:
+En la parte superior de la pantalla se encuentra una barra compacta de herramientas de evaluación:
 
-1. **Selector de Dispositivo:**
-   - **🖥️ Portal Web:** Renderiza la interfaz de escritorio completa.
-   - **📱 APPTUI Móvil:** Renderiza la interfaz en una carcasa interactiva de smartphone con el diseño oscuro oficial de la app móvil UV (*Dark Mode Santander* con acento turquesa `#31C4D7`).
-2. **Navegación Rápida por Wireflow:** Botones del `0` al `5` para saltar a cualquier pantalla sin necesidad de completar los pasos previos.
-3. **Selector de Usuario Alpha:** Desplegable para alternar entre los 12 estudiantes de prueba.
-4. **Adelantar Fila:** Avanza el turno de la fila virtual a la posición #1 al instante.
-5. **Simular Colisión de Concurrencia:** Dispara el evento de sesión duplicada para verificar el comportamiento de transferencia y el *Single-Session Lock*.
-6. **Probar Alerta Sonora:** Reproduce el tono de notificación institucional generado por Web Audio API.
-7. **Reiniciar Simulación:** Restablece los datos y la sesión a los valores iniciales.
+1. **Flujo Lineal y Progresivo (Sin Salto de Etapas):** La barra de salto de etapas fue retirada intencionalmente para garantizar que los evaluadores recorran el flujo real paso a paso (Login ➔ Portal ➔ Fila Virtual ➔ Toma de Ramos ➔ Horario ➔ Comprobante).
+2. **Enfoque Exclusivo en Versión Web:** El prototipo se ejecuta y muestra en su versión web oficial (`portal.uv.cl`). Los componentes y diseños de la aplicación móvil **APPTUI UV** se mantienen preservados dentro del proyecto (`frontend/src/componentes/movil_apptui/`) para futuras fases de desarrollo.
+3. **Selector de Alumno Alpha:** Desplegable para alternar rápidamente entre los 12 estudiantes de prueba.
+4. **Adelantar Turno:** Visible exclusivamente durante la etapa de *Fila Virtual* para permitir ingresar a la toma de ramos sin esperar el tiempo completo si se desea acelerar el test.
+5. **Probar Alerta Sonora:** Reproduce el tono armónico institucional generado mediante la Web Audio API nativa.
+6. **Simular Concurrencia:** Dispara el evento de sesión duplicada para verificar el comportamiento de transferencia y el *Single-Session Lock*.
+7. **Reiniciar Flujo:** Restablece los datos y retorna al usuario a la pantalla inicial de Login (`0. Login Portal UV`).
 
 ---
 

@@ -67,15 +67,11 @@ export const VistaHorarioArmado: React.FC = () => {
               <span>Comprobante QR</span>
             </button>
             <button
-              onClick={() => establecerPasoActual('INICIO_PORTAL')}
+              onClick={() => establecerPasoActual('PORTAL_ALUMNOS')}
               className="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-black rounded-xl text-xs flex items-center gap-2 shadow-lg active:scale-95 transition-all print:hidden"
             >
               <Home className="w-4 h-4" />
-              <span>
-                {modoVisualizacion === 'MOVIL_APPTUI'
-                  ? 'Finalizar y Volver a APPTUI UV'
-                  : 'Finalizar y Volver a Mi Portal UV'}
-              </span>
+              <span>Finalizar y Volver a Mi Portal UV</span>
             </button>
           </div>
         </div>
